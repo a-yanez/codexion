@@ -40,9 +40,9 @@ int	just_numbers(char *str)
 	return (1);
 }
 
-int just_positives(int *args)
+int	just_positives(int *args)
 {
-	int i;
+	int	i;
 
 	i = 0;
 	while (++i < 8)
