@@ -33,7 +33,7 @@ int	just_numbers(char *str)
 	i = 0;
 	while (str[i])
 	{
-		if (!ft_isdigit(str[0]))
+		if (!ft_isdigit(str[0]) || str[0] != '+')
 			return (0);
 		i++;
 	}
@@ -49,7 +49,7 @@ int	just_positives(int *args)
 	{
 		if (args[i] < 0)
 		{
-			fprintf(stderr, "Argument %d invalid, it is negative.\n", args[i]);
+			fprintf(stderr, "Argument %d is not a valid integer\n", args[i]);
 			return (0);
 		}
 	}
@@ -70,13 +70,12 @@ int	parser(char **argv, int **arg_list, char **sched)
 	fprintf(stdout, "Going through the array\n");
 	while (++i < 8)
 	{
-		fprintf(stdout, "Checking argument no. %d\n", i);
 		if (just_numbers(argv[i]))
 			(*arg_list)[i - 1] = atoi(argv[i]);
 		else
 		{
 			fprintf(stderr, "Argument %s invalid. Not an interger\n", argv[i]);
-			return (1);
+			return (0);
 		}
 	}
 	sched = &argv[8];
