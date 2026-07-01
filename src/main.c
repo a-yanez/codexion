@@ -26,6 +26,9 @@ int	main(int argc, char **argv)
 	}
 	i = parser(argv, &args, &sched);
 	if (i)
-		printf("Yay!");
+	{
+		printf("Yay!\n");
+		printf("The last number is %d\n", args[6]);
+	}
 	return (i);
 }

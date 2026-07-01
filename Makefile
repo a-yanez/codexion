@@ -20,6 +20,9 @@ $(BUILD_DIR)/%.o: $(SRC_DIR)/%.c
 	@mkdir -p $(dir $@)
 	$(CC) $(CFLAGS) -c $< -o $@
 
+debug: $(OBJS)
+	$(CC) -g $^ -o $(NAME)
+
 fclean: clean
 	rm -f $(NAME)
 

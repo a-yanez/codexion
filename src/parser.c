@@ -67,10 +67,12 @@ int	parser(char **argv, int **arg_list, char **sched)
 		fprintf(stderr, "Error: memory allocation failed during parsing.\n");
 		return (0);
 	}
+	fprintf(stdout, "Going through the array\n");
 	while (++i < 8)
 	{
+		fprintf(stdout, "Checking argument no. %d\n", i);
 		if (just_numbers(argv[i]))
-			*arg_list[i - 1] = atoi(argv[i]);
+			(*arg_list)[i - 1] = atoi(argv[i]);
 		else
 		{
 			fprintf(stderr, "Argument %s invalid. Not an interger\n", argv[i]);
