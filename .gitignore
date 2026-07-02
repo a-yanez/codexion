@@ -41,7 +41,8 @@
 *.su
 *.idb
 *.pdb
-
+.clangd
+compile_flags.txt
 # Kernel Module Compile Results
 *.mod*
 *.cmd
