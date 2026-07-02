@@ -33,7 +33,7 @@ int	just_numbers(char *str)
 	i = 0;
 	while (str[i])
 	{
-		if (!ft_isdigit(str[0]) || str[0] != '+')
+		if (!ft_isdigit(str[0]))
 			return (0);
 		i++;
 	}

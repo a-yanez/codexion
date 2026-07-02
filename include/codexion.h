@@ -17,4 +17,16 @@
 #include <pthread.h>
 #include <sys/time.h>
 
+// Coder structure
+typedef struct Coder{
+    pthread_t   *id;
+    int         *dongle;
+    int         *cycles;
+} coder;
+
+typedef struct Monitor{
+    pthread_t   *id_mon;
+} monitor;
+
+
 int	parser(char **argv, int **arg_list, char **sched);
