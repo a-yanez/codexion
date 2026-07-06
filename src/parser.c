@@ -10,6 +10,7 @@
 /*                                                                            */
 /* ************************************************************************** */
 #include "codexion.h"
+#include <string.h>
 #include "utils/utils.h"
 
 int	sched_cmp(char *sched)
