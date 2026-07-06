@@ -11,24 +11,30 @@
 /* ************************************************************************** */
 
 #include "codexion.h"
-#include "utils/utils.h"
+#include <stdio.h>
 
 int	main(int argc, char **argv)
 {
-	int		i;
-	int		*args;
-	char	*sched;
+	int				i;
+	int				*data;
+	char			*sched;
+	struct s_coder	*coders;
+	struct s_dongle	*dongles;
 
 	if (argc != 9)
 	{
 		fprintf(stderr, "Error: invalid number of arguments.\n");
 		return (1);
 	}
-	i = parser(argv, &args, &sched);
+	i = parser(argv, &data, &sched);
+	if (i)
+		printf("Data parsed correctly...\n");
+	i = init_wrapper(&coders, &dongles, data);
 	if (i)
 	{
-		printf("Yay!\n");
-		printf("The last number is %d\n", args[6]);
+		printf("Coders and dongles initialized correctly\n");
+		printf("The right dongle of the last coder is %p\n", coders[data[0]].dongle_right);
+		printf("The left dongle of the first coder is %p\n", coders[0].dongle_left);
 	}
 	return (i);
 }

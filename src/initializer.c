@@ -12,8 +12,8 @@
 
 #include "codexion.h"
 #include <stdlib.h>
+#include <stdio.h>
 #include <sys/time.h>
-#include <time.h>
 
 /*
 The data array contains the data for the following
@@ -25,8 +25,8 @@ parameters:
 5. time to refactor - idx 4
 6. number of compiles required - idx 5
 7. dongle cooldown - idx 6
-
  */
+
 void	free_dongles(t_dongle	**dongles, int current)
 {
 	while (current >= 0)
@@ -80,8 +80,35 @@ t_coder	*coder_init(int *data)
 	i = 0;
 	while (i < data[0])
 	{
+		coders[i].n_id = i;
 		coders[i].cycles = data[4];
 		i++;
 	}
 	return (coders);
+}
+
+int	init_wrapper(t_coder **coders, t_dongle **dongles, int *data)
+{
+	int	i;
+	int	k;
+
+	*coders = coder_init(data);
+	if (!(*coders))
+		return (0);
+	*dongles = dongle_init(data);
+	if (!(*dongles))
+	{
+		free_coders(coders, data[0] - 1);
+		return (0);
+	}
+	i = 0;
+	while (i < data[0])
+	{
+		(*coders)[i].dongle_left = &((*dongles)[i]);
+		k = (i + 1) % data[0];
+		printf("The value of k is %d\n", k);
+		(*coders)[i].dongle_right = &((*dongles)[k]);
+		i++;
+	}
+	return (1);
 }

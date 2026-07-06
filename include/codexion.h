@@ -11,8 +11,6 @@
 /* ************************************************************************** */
 
 #include <unistd.h>
-#include <stdio.h>
-#include <stdlib.h>
 #include <pthread.h>
 #include <sys/time.h>
 
@@ -20,16 +18,17 @@
 typedef struct s_dongle
 {
 	pthread_mutex_t	lock;
-	int				cool_down;
 	struct timeval	time;
+	int				cool_down;
 }	t_dongle;
 
 typedef struct s_coder
 {
-	pthread_t	id;
-	int			*dongle_right;
-	int			*dongle_left;
-	int			cycles;
+	int				n_id;
+	int				cycles;
+	pthread_t		thread_id;
+	struct s_dongle	*dongle_right;
+	struct s_dongle	*dongle_left;
 }	t_coder;
 
 typedef struct s_monitor
@@ -37,5 +36,8 @@ typedef struct s_monitor
 	pthread_t	*id_mon;
 }	t_monitor;
 
-// parser file
+// parser functions
 int	parser(char **argv, int **arg_list, char **sched);
+
+// initializer functions
+int	init_wrapper(t_coder **coders, t_dongle **dongles, int *data);
