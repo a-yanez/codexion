@@ -106,7 +106,6 @@ int	init_wrapper(t_coder **coders, t_dongle **dongles, int *data)
 	{
 		(*coders)[i].dongle_left = &((*dongles)[i]);
 		k = (i + 1) % data[0];
-		printf("The value of k is %d\n", k);
 		(*coders)[i].dongle_right = &((*dongles)[k]);
 		i++;
 	}

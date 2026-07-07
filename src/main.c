@@ -33,7 +33,7 @@ int	main(int argc, char **argv)
 	if (i)
 	{
 		printf("Coders and dongles initialized correctly\n");
-		printf("The right dongle of the last coder is %p\n", coders[data[0]].dongle_right);
+		printf("The right dongle of the last coder is %p\n", coders[data[0] - 1].dongle_right);
 		printf("The left dongle of the first coder is %p\n", coders[0].dongle_left);
 	}
 	return (i);
