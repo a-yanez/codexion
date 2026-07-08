@@ -10,6 +10,9 @@
 /*                                                                            */
 /* ************************************************************************** */
 
+#ifndef CODEXION_H
+# define CODEXION_H
+
 #include <unistd.h>
 #include <pthread.h>
 #include <sys/time.h>
@@ -51,3 +54,5 @@ int	init_wrapper(t_coder **coders, t_dongle **dongles, int *data);
 
 //monitor functions
 void	*run_codexion(void *args);
+
+#endif
