@@ -11,3 +11,9 @@
 /* ************************************************************************** */
 
 #include <pthread.h>
+
+void	*coder_rutine(void *args)
+{
+	(void)args;
+	return (NULL);
+}

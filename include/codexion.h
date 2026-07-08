@@ -36,8 +36,18 @@ typedef struct s_monitor
 	pthread_t	*id_mon;
 }	t_monitor;
 
+//Args structure
+typedef struct s_args
+{
+	int		*data;
+	char	*sched;
+}	t_args;
+
 // parser functions
 int	parser(char **argv, int **arg_list, char **sched);
 
 // initializer functions
 int	init_wrapper(t_coder **coders, t_dongle **dongles, int *data);
+
+//monitor functions
+void	*run_codexion(void *args);

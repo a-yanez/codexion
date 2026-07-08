@@ -11,30 +11,44 @@
 /* ************************************************************************** */
 
 #include "codexion.h"
+#include <pthread.h>
 #include <stdio.h>
+#include <stdlib.h>
+
+
+t_args	*argumenting(char **argv, int **data, char **sched)
+{
+	t_args	*args;
+
+	if (!parser(argv, data, sched))
+		return (NULL);
+	args = (t_args *)malloc(sizeof(t_args));
+	if (!args)
+	{
+		fprintf(stderr, "Error while allocating memory to begin codexion.\n");
+		return (NULL);
+	}
+	args->data = *data;
+	args->sched = *sched;
+	return (args);
+}
 
 int	main(int argc, char **argv)
 {
-	int				i;
-	int				*data;
-	char			*sched;
-	struct s_coder	*coders;
-	struct s_dongle	*dongles;
+	int			*data;
+	char		*sched;
+	t_args		*args;
+	pthread_t	monitor;
 
 	if (argc != 9)
 	{
 		fprintf(stderr, "Error: invalid number of arguments.\n");
 		return (1);
 	}
-	i = parser(argv, &data, &sched);
-	if (i)
-		printf("Data parsed correctly...\n");
-	i = init_wrapper(&coders, &dongles, data);
-	if (i)
-	{
-		printf("Coders and dongles initialized correctly\n");
-		printf("The right dongle of the last coder is %p\n", coders[data[0] - 1].dongle_right);
-		printf("The left dongle of the first coder is %p\n", coders[0].dongle_left);
-	}
-	return (i);
+	args = argumenting(argv, &data, &sched);
+	if (!args)
+		return (1);
+	pthread_create(&monitor, NULL, run_codexion, args);
+	pthread_join(monitor, NULL);
+	return (0);
 }

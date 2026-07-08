@@ -27,7 +27,7 @@ parameters:
 7. dongle cooldown - idx 6
  */
 
-void	free_dongles(t_dongle	**dongles, int current)
+static void	free_dongles(t_dongle	**dongles, int current)
 {
 	while (current >= 0)
 	{
@@ -36,7 +36,7 @@ void	free_dongles(t_dongle	**dongles, int current)
 	}
 }
 
-void	free_coders(t_coder **coders, int current)
+static void	free_coders(t_coder **coders, int current)
 {
 	while (current >= 0)
 	{
@@ -45,7 +45,7 @@ void	free_coders(t_coder **coders, int current)
 	}
 }
 
-t_dongle	*dongle_init(int *data)
+static t_dongle	*dongle_init(int *data)
 {
 	struct s_dongle	*dongles;
 	int				i;
@@ -69,7 +69,7 @@ t_dongle	*dongle_init(int *data)
 	return (dongles);
 }
 
-t_coder	*coder_init(int *data)
+static t_coder	*coder_init(int *data)
 {
 	struct s_coder	*coders;
 	int				i;
@@ -80,7 +80,7 @@ t_coder	*coder_init(int *data)
 	i = 0;
 	while (i < data[0])
 	{
-		coders[i].n_id = i;
+		coders[i].n_id = i + 1;
 		coders[i].cycles = data[4];
 		i++;
 	}
@@ -106,7 +106,10 @@ int	init_wrapper(t_coder **coders, t_dongle **dongles, int *data)
 	{
 		(*coders)[i].dongle_left = &((*dongles)[i]);
 		k = (i + 1) % data[0];
-		(*coders)[i].dongle_right = &((*dongles)[k]);
+		if (&((*dongles)[i]) == &((*dongles)[k]))
+			(*coders)[i].dongle_right = NULL;
+		else
+			(*coders)[i].dongle_right = &((*dongles)[k]);
 		i++;
 	}
 	return (1);
