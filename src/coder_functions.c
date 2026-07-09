@@ -10,10 +10,49 @@
 /*                                                                            */
 /* ************************************************************************** */
 
+#include "codexion.h"
 #include <pthread.h>
+#include <time.h>
+
+void	grab_dongles(t_dongle *left, t_dongle *right)
+{
+	pthread_mutex_lock(&left->lock);
+	while (!left->avail)
+	{
+		pthread_cond_wait(&left->cond, &left->lock);
+	}
+	left->avail = 0;
+	while (!right->avail)
+	{
+		pthread_cond_wait(&right->cond, &right->lock);
+	}
+	right->avail = 0;
+}
+
+// COMPLETE THIS PART!!!!!!! FIND OUT HOW TO SIGNAL THE RELEASE!
+void	release(t_dongle *left, t_dongle *right)
+{
+}
 
 void	*coder_rutine(void *args)
 {
-	(void)args;
+	t_coder		*coder;
+	t_dongle	*left;
+	t_dongle	*right;
+
+	coder = (t_coder *)args;
+	left = coder->dongle_left;
+	right = coder->dongle_right;
+	pthread_mutex_lock(&left->lock);
+	if (!left->avail)
+	{
+		pthread_cond_wait(&left->cond, &left->lock);
+	}
+	left->avail = 0;
+	if (!right->avail)
+	{
+		pthread_cond_wait(&right->cond, &right->lock);
+	}
+	right->avail = 0;
 	return (NULL);
 }

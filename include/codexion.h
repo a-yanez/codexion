@@ -13,16 +13,18 @@
 #ifndef CODEXION_H
 # define CODEXION_H
 
-#include <unistd.h>
-#include <pthread.h>
-#include <sys/time.h>
+# include <unistd.h>
+# include <pthread.h>
+# include <sys/time.h>
 
 // Coder structure
 typedef struct s_dongle
 {
 	pthread_mutex_t	lock;
+	pthread_cond_t	cond;
 	struct timeval	time;
 	int				cool_down;
+	int				avail;
 }	t_dongle;
 
 typedef struct s_coder
@@ -30,6 +32,9 @@ typedef struct s_coder
 	int				n_id;
 	int				cycles;
 	pthread_t		thread_id;
+	int				compt_time;
+	int				db_time;
+	int				refac_time;
 	struct s_dongle	*dongle_right;
 	struct s_dongle	*dongle_left;
 }	t_coder;
@@ -47,10 +52,12 @@ typedef struct s_args
 }	t_args;
 
 // parser functions
-int	parser(char **argv, int **arg_list, char **sched);
+int		parser(char **argv, int **arg_list, char **sched);
 
 // initializer functions
-int	init_wrapper(t_coder **coders, t_dongle **dongles, int *data);
+void	free_dongles(t_dongle **dongles, int current);
+void	free_coders(t_coder **coders, int current);
+int		init_wrapper(t_coder **coders, t_dongle **dongles, int *data);
 
 //monitor functions
 void	*run_codexion(void *args);

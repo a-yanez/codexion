@@ -11,6 +11,7 @@
 /* ************************************************************************** */
 
 #include "codexion.h"
+#include "utils/utils.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <sys/time.h>
@@ -27,24 +28,6 @@ parameters:
 7. dongle cooldown - idx 6
  */
 
-static void	free_dongles(t_dongle	**dongles, int current)
-{
-	while (current >= 0)
-	{
-		free(&((*dongles)[current]));
-		current--;
-	}
-}
-
-static void	free_coders(t_coder **coders, int current)
-{
-	while (current >= 0)
-	{
-		free(&((*coders)[current]));
-		current--;
-	}
-}
-
 static t_dongle	*dongle_init(int *data)
 {
 	struct s_dongle	*dongles;
@@ -58,6 +41,7 @@ static t_dongle	*dongle_init(int *data)
 	while (i < data[0])
 	{
 		dongles[i].cool_down = data[6];
+		dongles[i].avail = 1;
 		k = gettimeofday(&(dongles[i].time), NULL);
 		if (k < 0)
 		{
@@ -87,10 +71,21 @@ static t_coder	*coder_init(int *data)
 	return (coders);
 }
 
+void	assing_dongles(t_coder *coder, t_dongle **dongles, int i, int num)
+{
+	int	k;
+
+	coder->dongle_left = &((*dongles)[i]);
+	k = (i + 1) % num;
+	if (&((*dongles)[i]) == &((*dongles)[k]))
+		coder->dongle_right = NULL;
+	else
+		coder->dongle_right = &((*dongles)[k]);
+}
+
 int	init_wrapper(t_coder **coders, t_dongle **dongles, int *data)
 {
 	int	i;
-	int	k;
 
 	*coders = coder_init(data);
 	if (!(*coders))
@@ -104,12 +99,10 @@ int	init_wrapper(t_coder **coders, t_dongle **dongles, int *data)
 	i = 0;
 	while (i < data[0])
 	{
-		(*coders)[i].dongle_left = &((*dongles)[i]);
-		k = (i + 1) % data[0];
-		if (&((*dongles)[i]) == &((*dongles)[k]))
-			(*coders)[i].dongle_right = NULL;
-		else
-			(*coders)[i].dongle_right = &((*dongles)[k]);
+		assing_dongles(&((*coders)[i]), dongles, i, data[0]);
+		(*coders)[i].compt_time = data[2];
+		(*coders)[i].db_time = data[3];
+		(*coders)[i].refac_time = data[4];
 		i++;
 	}
 	return (1);

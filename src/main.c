@@ -15,7 +15,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-
 t_args	*argumenting(char **argv, int **data, char **sched)
 {
 	t_args	*args;

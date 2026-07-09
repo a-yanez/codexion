@@ -11,10 +11,15 @@
 /* ************************************************************************** */
 
 #ifndef UTILS_H
-#define UTILS_H
+# define UTILS_H
 
+# include "codexion.h"
 // char analysis functions
-int	ft_isalpha(int c);
-int	ft_isdigit(int c);
+int		ft_isalpha(int c);
+int		ft_isdigit(int c);
+
+//Function to free memory
+void	free_dongles(t_dongle **dongles, int current);
+void	free_coders(t_coder **coders, int current);
 
 #endif
