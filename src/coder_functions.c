@@ -14,7 +14,7 @@
 #include <pthread.h>
 #include <time.h>
 
-void	grab_dongles(t_dongle *left, t_dongle *right)
+void	take_dongles(t_dongle *left, t_dongle *right)
 {
 	pthread_mutex_lock(&left->lock);
 	while (!left->avail)
@@ -22,16 +22,20 @@ void	grab_dongles(t_dongle *left, t_dongle *right)
 		pthread_cond_wait(&left->cond, &left->lock);
 	}
 	left->avail = 0;
+	pthread_mutex_unlock(&left->lock);
+	pthread_mutex_lock(&right->lock);
 	while (!right->avail)
 	{
 		pthread_cond_wait(&right->cond, &right->lock);
 	}
 	right->avail = 0;
+	pthread_mutex_unlock(&right->lock);
 }
 
 // COMPLETE THIS PART!!!!!!! FIND OUT HOW TO SIGNAL THE RELEASE!
-void	release(t_dongle *left, t_dongle *right)
+void	release_dongles(t_dongle *left, t_dongle *right)
 {
+		pthread_mutex_lock()
 }
 
 void	*coder_rutine(void *args)
