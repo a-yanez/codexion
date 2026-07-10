@@ -25,6 +25,7 @@ typedef struct s_dongle
 	struct timeval	time;
 	int				cool_down;
 	int				avail;
+	int				queue[2];
 }	t_dongle;
 
 typedef struct s_coder

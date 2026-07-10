@@ -13,7 +13,8 @@
 #include "codexion.h"
 #include "utils/utils.h"
 #include <stdlib.h>
-#include <stdio.h>
+#include <string.h>
+#include <string.h>
 #include <sys/time.h>
 
 /*
@@ -42,6 +43,7 @@ static t_dongle	*dongle_init(int *data)
 	{
 		dongles[i].cool_down = data[6];
 		dongles[i].avail = 1;
+		memset(&dongles[i].queue, 0, 2);
 		k = gettimeofday(&(dongles[i].time), NULL);
 		if (k < 0)
 		{
