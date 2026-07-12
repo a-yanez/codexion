@@ -11,6 +11,7 @@
 /* ************************************************************************** */
 
 #include "codexion.h"
+#include "utils/utils.h"
 #include <pthread.h>
 #include <sys/time.h>
 
@@ -18,9 +19,9 @@ int	check_avail(t_dongle *dongle)
 {
 	suseconds_t last_used;
 
-	last_used = dongle->time.tv_usec;
-	gettimeofday(&dongle->time, NULL);
-	if (dongle->time.tv_usec - last_used > dongle->cool_down)
+	last_used = dongle->last_used.tv_usec;
+	gettimeofday(&dongle->last_used, NULL);
+	if (dongle->last_used.tv_usec - last_used > dongle->cool_down)
 	{
 		dongle->avail = 1;
 	}
@@ -28,53 +29,64 @@ int	check_avail(t_dongle *dongle)
 }
 
 //EDF GOES HERE!
-void	queue(t_dongle *dongle, int id)
+void	queue(t_dongle *dongle, t_coder *coder)
 {
 	int	i;
 
 	i = 0;
 	while (i < 2)
 	{
-		if (dongle->queue[i] == 0)
+		if (dongle->queue[i] == NULL)
 		{
-			dongle->queue[i] = id;
+			dongle->queue[i] = coder;
 			break;
 		}
 		i++;
 	}
 }
 
+void edf(t_dongle *dongle)
+{
+	t_coder			*tmp;
+	struct timeval	time_store;
+
+	if (dongle->queue[1] != NULL)
+	{
+		\\Check the time!
+	}
+}
+
 void	pop(t_dongle *dongle)
 {
-	int	tmp;
+	t_coder	*tmp;
 
 	tmp = dongle->queue[1];
 	dongle->queue[0] = tmp;
-	dongle->queue[1] = 0;
+	dongle->queue[1] = NULL;
 }
 
-void	take_dongles(int id, t_dongle *left, t_dongle *right)
+void	take_dongles(t_coder *coder, t_dongle *left, t_dongle *right)
 {
 	pthread_mutex_lock(&left->lock);
 	check_avail(left);
-	queue(left, id);
-	while (!left->avail && left->queue[0] != id)
+	queue(left, coder->n_id);
+	while (!left->avail && &left->queue[0] != &coder)
 	{
 		pthread_cond_wait(&left->cond, &left->lock);
 	}
 	left->avail = 0;
 	pop(left);
-	gettimeofday(&left->time, NULL);
+	gettimeofday(&left->last_used, NULL);
 	pthread_mutex_unlock(&left->lock);
 	pthread_mutex_lock(&right->lock);
-	queue(right, id);
-	while (!right->avail && left->queue[0] != id)
+	queue(right, coder);
+	while (!right->avail && left->queue[0] != coder)
 	{
 		pthread_cond_wait(&right->cond, &right->lock);
 	}
 	right->avail = 0;
 	pop(right);
-	gettimeofday(&right->time, NULL);
+	gettimeofday(&right->last_used, NULL);
 	pthread_mutex_unlock(&right->lock);
 }
 

@@ -15,8 +15,10 @@
 
 # include "codexion.h"
 // char analysis functions
-int		ft_isalpha(int c);
 int		ft_isdigit(int c);
+
+// pointer swapper
+void	ft_pswap(void **a, void **b);
 
 //Function to free memory
 void	free_dongles(t_dongle **dongles, int current);

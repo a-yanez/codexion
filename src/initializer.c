@@ -43,7 +43,8 @@ static t_dongle	*dongle_init(int *data)
 	{
 		dongles[i].cool_down = data[6];
 		dongles[i].avail = 1;
-		memset(&dongles[i].queue, 0, 2);
+		dongles[i].queue[0] = NULL;
+		dongles[i].queue[1] = NULL;
 		k = gettimeofday(&(dongles[i].time), NULL);
 		if (k < 0)
 		{
@@ -73,7 +74,7 @@ static t_coder	*coder_init(int *data)
 	return (coders);
 }
 
-void	assing_dongles(t_coder *coder, t_dongle **dongles, int i, int num)
+void	assigning_dongles(t_coder *coder, t_dongle **dongles, int i, int num)
 {
 	int	k;
 
@@ -85,7 +86,7 @@ void	assing_dongles(t_coder *coder, t_dongle **dongles, int i, int num)
 		coder->dongle_right = &((*dongles)[k]);
 }
 
-int	init_wrapper(t_coder **coders, t_dongle **dongles, int *data)
+int	init_wrapper(t_coder **coders, t_dongle **dongles, int *data, char *sched)
 {
 	int	i;
 
@@ -101,7 +102,9 @@ int	init_wrapper(t_coder **coders, t_dongle **dongles, int *data)
 	i = 0;
 	while (i < data[0])
 	{
-		assing_dongles(&((*coders)[i]), dongles, i, data[0]);
+		if (strcmp(sched, "edf") == 0)
+			(*dongles)[i].edf = 1;
+		assigning_dongles(&((*coders)[i]), dongles, i, data[0]);
 		(*coders)[i].compt_time = data[2];
 		(*coders)[i].db_time = data[3];
 		(*coders)[i].refac_time = data[4];

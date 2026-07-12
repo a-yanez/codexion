@@ -1,21 +1,22 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   ft_isalpha.c                                       :+:      :+:    :+:   */
+/*   ft_pswap.c                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ayanez-o <ayanez-o@student.42barcelon      +#+  +:+       +#+        */
+/*   By: ayanez-o@student.42barcelona.com           +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2026/07/01 18:22:50 by ayanez-o          #+#    #+#             */
-/*   Updated: 2026/07/01 18:22:54 by ayanez-o         ###   ########.fr       */
+/*   Created: 2026/07/12 00:20:51 by ayanez-o          #+#    #+#             */
+/*   Updated: 2026/07/12 00:29:15 by ayanez-o         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "utils/utils.h"
 
-int	ft_isalpha(int c)
+void	ft_pswap(void **a, void **b)
 {
-	if ((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z'))
-		return (1024);
-	else
-		return (0);
+	void	*tmp;
+
+	tmp = *a;
+	*a = *b;
+	*b = tmp;
 }

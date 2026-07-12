@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   codexion.h                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ayanez-o <ayanez-o@student.42barcelon      +#+  +:+       +#+        */
+/*   By: ayanez-o <ayanez-o@student.42barcelona.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/27 17:36:01 by ayanez-o          #+#    #+#             */
-/*   Updated: 2026/06/27 17:36:12 by ayanez-o         ###   ########.fr       */
+/*   Updated: 2026/07/12 00:13:51 by ayanez-o         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,15 +17,19 @@
 # include <pthread.h>
 # include <sys/time.h>
 
-// Coder structure
+// Coders and dongles structure
+typedef struct s_dongle t_dongle;
+typedef struct s_coder t_coder;
+
 typedef struct s_dongle
 {
 	pthread_mutex_t	lock;
 	pthread_cond_t	cond;
-	struct timeval	time;
+	struct timeval	last_used;
 	int				cool_down;
 	int				avail;
-	int				queue[2];
+	int				edf;
+	t_coder			*queue[2];
 }	t_dongle;
 
 typedef struct s_coder
