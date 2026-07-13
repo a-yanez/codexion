@@ -11,83 +11,64 @@
 /* ************************************************************************** */
 
 #include "codexion.h"
-#include "utils/utils.h"
+#include <bits/types/struct_timeval.h>
 #include <pthread.h>
+#include <stdio.h>
 #include <sys/time.h>
+#include <stdio.h>
 
-int	check_avail(t_dongle *dongle)
+void	take_dongle(t_coder *coder, t_dongle *dongle)
 {
-	suseconds_t last_used;
+	struct timeval time_measure;
 
-	last_used = dongle->last_used.tv_usec;
-	gettimeofday(&dongle->last_used, NULL);
-	if (dongle->last_used.tv_usec - last_used > dongle->cool_down)
-	{
-		dongle->avail = 1;
-	}
-	return (1);
-}
-
-//EDF GOES HERE!
-void	queue(t_dongle *dongle, t_coder *coder)
-{
-	int	i;
-
-	i = 0;
-	while (i < 2)
-	{
-		if (dongle->queue[i] == NULL)
-		{
-			dongle->queue[i] = coder;
-			break;
-		}
-		i++;
-	}
-}
-
-void edf(t_dongle *dongle)
-{
-	t_coder			*tmp;
-	struct timeval	time_store;
-
-	if (dongle->queue[1] != NULL)
-	{
-		\\Check the time!
-	}
-}
-
-void	pop(t_dongle *dongle)
-{
-	t_coder	*tmp;
-
-	tmp = dongle->queue[1];
-	dongle->queue[0] = tmp;
-	dongle->queue[1] = NULL;
+	pthread_mutex_lock(&dongle->lock);
+	queue(dongle, coder);
+	while (!dongle->avail && &dongle->queue[0] != &coder)
+		pthread_cond_wait(&dongle->cond, &dongle->lock);
+	dongle->avail = 0;
+	pop(dongle);
+	pthread_mutex_unlock(&dongle->lock);
 }
 
 void	take_dongles(t_coder *coder, t_dongle *left, t_dongle *right)
 {
+	struct timeval	time_measure;
+
 	pthread_mutex_lock(&left->lock);
-	check_avail(left);
-	queue(left, coder->n_id);
+	queue(left, coder);
 	while (!left->avail && &left->queue[0] != &coder)
-	{
 		pthread_cond_wait(&left->cond, &left->lock);
-	}
 	left->avail = 0;
 	pop(left);
-	gettimeofday(&left->last_used, NULL);
 	pthread_mutex_unlock(&left->lock);
 	pthread_mutex_lock(&right->lock);
 	queue(right, coder);
 	while (!right->avail && left->queue[0] != coder)
-	{
 		pthread_cond_wait(&right->cond, &right->lock);
-	}
 	right->avail = 0;
 	pop(right);
-	gettimeofday(&right->last_used, NULL);
 	pthread_mutex_unlock(&right->lock);
+}
+
+int	release_dongles(t_coder *coder, t_dongle *left, t_dongle *right)
+{
+	struct timeval	time_measure;
+
+	if (gettimeofday(&time_measure, NULL) < 0)
+		return (0);
+	pthread_mutex_lock(&left->lock);
+	left->last_used = time_measure.tv_usec;
+	pthread_mutex_unlock(&left->lock);
+	pthread_mutex_lock(&right->lock);
+	right->last_used = time_measure.tv_usec;
+	pthread_mutex_unlock(&right->lock);
+	return (1);
+}
+
+void	compile(t_coder *coder)
+{
+	printf("%d %d is compiling");
+	// THIS NEEDS A MUTEX FOR PRINTING!!
 }
 
 void	*coder_rutine(void *args)

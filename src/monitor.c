@@ -16,6 +16,18 @@
 #include "codexion.h"
 #include "utils/utils.h"
 
+int	check_avail(t_dongle *dongle)
+{
+	struct timeval	time_measure;
+
+	gettimeofday(&time_measure, NULL);
+	if (time_measure.tv_usec - dongle->last_used > dongle->cool_down)
+	{
+		dongle->avail = 1;
+	}
+	return (1);
+}
+
 int	init_cond(t_dongle *dongles, int num)
 {
 	int	i;
@@ -35,11 +47,14 @@ void	*run_codexion(void *args)
 {
 	int				i;
 	int				*data;
+	char			*sched;
 	struct s_coder	*coders;
 	struct s_dongle	*dongles;
 
 	data = ((t_args *)args)->data;
-	i = init_wrapper(&coders, &dongles, data);
+	sched = ((t_args *)args)->sched;
+
+	i = init_wrapper(&coders, &dongles, data, sched);
 	if (i)
 	{
 		printf("Coders and dongles initialized correctly\n");

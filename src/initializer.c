@@ -14,7 +14,6 @@
 #include "utils/utils.h"
 #include <stdlib.h>
 #include <string.h>
-#include <string.h>
 #include <sys/time.h>
 
 /*
@@ -33,7 +32,6 @@ static t_dongle	*dongle_init(int *data)
 {
 	struct s_dongle	*dongles;
 	int				i;
-	int				k;
 
 	dongles = (t_dongle *)malloc(sizeof(t_dongle) * data[0]);
 	if (!dongles)
@@ -45,12 +43,7 @@ static t_dongle	*dongle_init(int *data)
 		dongles[i].avail = 1;
 		dongles[i].queue[0] = NULL;
 		dongles[i].queue[1] = NULL;
-		k = gettimeofday(&(dongles[i].time), NULL);
-		if (k < 0)
-		{
-			free_dongles(&dongles, i - 1);
-			return (NULL);
-		}
+		dongles[i].last_used = 0;
 		i++;
 	}
 	return (dongles);
