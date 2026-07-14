@@ -27,7 +27,7 @@ typedef struct s_dongle
 	pthread_cond_t	cond;
 	suseconds_t 	last_used;
 	int				cool_down;
-	int				avail;
+	int				on_use;
 	int				edf;
 	t_coder			*queue[2];
 }	t_dongle;
@@ -37,12 +37,13 @@ typedef struct s_coder
 	int				n_id;
 	int				cycles;
 	pthread_t		thread_id;
-	int				compt_time;
-	int				db_time;
-	int				refac_time;
-	struct s_dongle	*dongle_right;
-	struct s_dongle	*dongle_left;
+	suseconds_t		compt_time;
+	suseconds_t		db_time;
+	suseconds_t		refac_time;
+	struct s_dongle	*dongles[2];
+	suseconds_t		burnout;
 	suseconds_t 	last_compile_start;
+	pthread_mutex_t	*printer;
 }	t_coder;
 
 typedef struct s_monitor
@@ -62,7 +63,7 @@ typedef struct s_args
 int		parser(char **argv, int **arg_list, char **sched);
 
 // initializer functions
-int		init_wrapper(t_coder **coders, t_dongle **dongles, int *data, char *sched);
+int	init_wrapper(t_coder **coders, t_dongle **dongles, t_args *args);
 
 //monitor functions
 void	*run_codexion(void *args);

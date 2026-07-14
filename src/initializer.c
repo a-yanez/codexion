@@ -12,8 +12,10 @@
 
 #include "codexion.h"
 #include "utils/utils.h"
+#include <assert.h>
 #include <stdlib.h>
 #include <string.h>
+#include <pthread.h>
 #include <sys/time.h>
 
 /*
@@ -28,11 +30,15 @@ parameters:
 7. dongle cooldown - idx 6
  */
 
-static t_dongle	*dongle_init(int *data)
+static t_dongle	*dongle_init(int *data, char *sched)
 {
 	struct s_dongle	*dongles;
 	int				i;
+	int				k;
 
+	k = 0;
+	if (strcmp(sched, "edf") == 0)
+		k = 1;
 	dongles = (t_dongle *)malloc(sizeof(t_dongle) * data[0]);
 	if (!dongles)
 		return (NULL);
@@ -40,10 +46,11 @@ static t_dongle	*dongle_init(int *data)
 	while (i < data[0])
 	{
 		dongles[i].cool_down = data[6];
-		dongles[i].avail = 1;
+		dongles[i].on_use = 0;
 		dongles[i].queue[0] = NULL;
 		dongles[i].queue[1] = NULL;
 		dongles[i].last_used = 0;
+		dongles[i].edf = k;
 		i++;
 	}
 	return (dongles);
@@ -61,46 +68,55 @@ static t_coder	*coder_init(int *data)
 	while (i < data[0])
 	{
 		coders[i].n_id = i + 1;
-		coders[i].cycles = data[4];
+		coders[i].burnout = data[1] * 1000;
+		coders[i].compt_time = data[2] * 1000;
+		coders[i].db_time = data[3] * 1000;
+		coders[i].refac_time = data[4] * 1000;
+		coders[i].cycles = data[5];
+		coders[i].last_compile_start = 0;
 		i++;
 	}
 	return (coders);
 }
 
-void	assigning_dongles(t_coder *coder, t_dongle **dongles, int i, int num)
+static void	assign_dongles(t_coder *coder, t_dongle **dongles, int i, int num)
 {
 	int	k;
 
-	coder->dongle_left = &((*dongles)[i]);
+	coder->dongles[0] = &((*dongles)[i]);
 	k = (i + 1) % num;
 	if (&((*dongles)[i]) == &((*dongles)[k]))
-		coder->dongle_right = NULL;
+		coder->dongles[1] = NULL;
 	else
-		coder->dongle_right = &((*dongles)[k]);
+		coder->dongles[1] = &((*dongles)[k]);
+	if (i % 2 == 0)
+		ft_pswap((void **)&coder->dongles[0], (void **)&coder->dongles[1]);
 }
 
-int	init_wrapper(t_coder **coders, t_dongle **dongles, int *data, char *sched)
+int	init_wrapper(t_coder **coders, t_dongle **dongles, t_args *args)
 {
-	int	i;
+	int				i;
 
-	*coders = coder_init(data);
-	if (!(*coders))
+	*coders = coder_init(((t_args *)args)->data);
+	if (!pthread_mutex_init(((t_args *)args)->printer, NULL))
 		return (0);
-	*dongles = dongle_init(data);
+	if (!(*coders))
+	{
+		pthread_mutex_destroy(((t_args *)args)->printer);
+		return (0);
+	}
+	*dongles = dongle_init(((t_args *)args)->data, ((t_args *)args)->sched);
 	if (!(*dongles))
 	{
-		free_coders(coders, data[0] - 1);
+		pthread_mutex_destroy(((t_args *)args)->printer);
+		free_coders(coders, ((t_args *)args)->data[0] - 1);
 		return (0);
 	}
 	i = 0;
-	while (i < data[0])
+	while (i < ((t_args *)args)->data[0])
 	{
-		if (strcmp(sched, "edf") == 0)
-			(*dongles)[i].edf = 1;
-		assigning_dongles(&((*coders)[i]), dongles, i, data[0]);
-		(*coders)[i].compt_time = data[2];
-		(*coders)[i].db_time = data[3];
-		(*coders)[i].refac_time = data[4];
+		(*coders)[i].printer = ((t_args *)args)->printer;
+		assign_dongles(&((*coders)[i]), dongles, i, ((t_args *)args)->data[0]);
 		i++;
 	}
 	return (1);

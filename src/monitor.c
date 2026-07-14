@@ -23,7 +23,7 @@ int	check_avail(t_dongle *dongle)
 	gettimeofday(&time_measure, NULL);
 	if (time_measure.tv_usec - dongle->last_used > dongle->cool_down)
 	{
-		dongle->avail = 1;
+		dongle->on_use = 0;
 	}
 	return (1);
 }
@@ -47,19 +47,16 @@ void	*run_codexion(void *args)
 {
 	int				i;
 	int				*data;
-	char			*sched;
 	struct s_coder	*coders;
 	struct s_dongle	*dongles;
 
 	data = ((t_args *)args)->data;
-	sched = ((t_args *)args)->sched;
-
-	i = init_wrapper(&coders, &dongles, data, sched);
+	i = init_wrapper(&coders, &dongles, (t_args *) args);
 	if (i)
 	{
 		printf("Coders and dongles initialized correctly\n");
-		printf("The right dongle of coder # %d is %p\n", coders[data[0] - 1].n_id, coders[data[0] - 1].dongle_right);
-		printf("The left dongle of code # %d coder is %p\n", coders[0].n_id, coders[0].dongle_left);
+		printf("The right dongle of coder # %d is %p\n", coders[data[0] - 1].n_id, coders[data[0] - 1].dongles[0]);
+		printf("The left dongle of code # %d coder is %p\n", coders[0].n_id, coders[0].dongles[1]);
 	}
 	if (!init_cond(dongles, data[0]))
 	{
@@ -67,7 +64,6 @@ void	*run_codexion(void *args)
 		free_coders(&coders, data[0] - 1);
 		return (NULL);
 	}
-
 	// NEXT IDEA! Using a cond variable to indicate that i is now false? Maybe the coders can access it?
 	return (NULL);
 }

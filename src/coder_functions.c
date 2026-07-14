@@ -16,46 +16,33 @@
 #include <stdio.h>
 #include <sys/time.h>
 #include <stdio.h>
+#include <unistd.h>
 
 void	take_dongle(t_coder *coder, t_dongle *dongle)
 {
-	struct timeval time_measure;
+	struct timeval	t_measure;
+	suseconds_t		t;
 
 	pthread_mutex_lock(&dongle->lock);
 	queue(dongle, coder);
-	while (!dongle->avail && &dongle->queue[0] != &coder)
+	while (dongle->on_use && &dongle->queue[0] != &coder)
 		pthread_cond_wait(&dongle->cond, &dongle->lock);
-	dongle->avail = 0;
+	dongle->on_use = 1;
+	gettimeofday(&t_measure, NULL);
+	t = t_measure.tv_usec / 1000;
 	pop(dongle);
 	pthread_mutex_unlock(&dongle->lock);
+	pthread_mutex_lock(coder->printer);
+	printf("%ld %d has taken a dongle\n", t, coder->n_id);
+	pthread_mutex_unlock(coder->printer);
 }
 
-void	take_dongles(t_coder *coder, t_dongle *left, t_dongle *right)
-{
-	struct timeval	time_measure;
-
-	pthread_mutex_lock(&left->lock);
-	queue(left, coder);
-	while (!left->avail && &left->queue[0] != &coder)
-		pthread_cond_wait(&left->cond, &left->lock);
-	left->avail = 0;
-	pop(left);
-	pthread_mutex_unlock(&left->lock);
-	pthread_mutex_lock(&right->lock);
-	queue(right, coder);
-	while (!right->avail && left->queue[0] != coder)
-		pthread_cond_wait(&right->cond, &right->lock);
-	right->avail = 0;
-	pop(right);
-	pthread_mutex_unlock(&right->lock);
-}
-
-int	release_dongles(t_coder *coder, t_dongle *left, t_dongle *right)
+int	release_dongle(t_coder *coder, t_dongle *left, t_dongle *right)
 {
 	struct timeval	time_measure;
 
 	if (gettimeofday(&time_measure, NULL) < 0)
-		return (0);
+		return (-1);
 	pthread_mutex_lock(&left->lock);
 	left->last_used = time_measure.tv_usec;
 	pthread_mutex_unlock(&left->lock);
@@ -65,31 +52,30 @@ int	release_dongles(t_coder *coder, t_dongle *left, t_dongle *right)
 	return (1);
 }
 
-void	compile(t_coder *coder)
+void	print_action(t_coder *coder, char *action)
 {
-	printf("%d %d is compiling");
-	// THIS NEEDS A MUTEX FOR PRINTING!!
+	struct timeval	t_measure;
+	suseconds_t		t;
+
+	pthread_mutex_lock(coder->printer);
+	gettimeofday(&t_measure, NULL);
+	t = t_measure.tv_usec / 1000;
+	printf("%ld %d is %s\n", t, coder->n_id, action);
+	pthread_mutex_unlock(coder->printer);
 }
 
 void	*coder_rutine(void *args)
 {
 	t_coder		*coder;
-	t_dongle	*left;
-	t_dongle	*right;
 
 	coder = (t_coder *)args;
-	left = coder->dongle_left;
-	right = coder->dongle_right;
-	pthread_mutex_lock(&left->lock);
-	if (!left->avail)
-	{
-		pthread_cond_wait(&left->cond, &left->lock);
-	}
-	left->avail = 0;
-	if (!right->avail)
-	{
-		pthread_cond_wait(&right->cond, &right->lock);
-	}
-	right->avail = 0;
+	take_dongle(coder, coder->dongles[0]);
+	take_dongle(coder, coder->dongles[1]);
+	print_action(coder, "compiling");
+	usleep(coder->compt_time);
+	print_action(coder, "debugging");
+	usleep(coder->db_time);
+	print_action(coder, "refactoring");
+	usleep(coder->refac_time);
 	return (NULL);
 }

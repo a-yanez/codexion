@@ -43,7 +43,7 @@ void	queue(t_dongle *dongle, t_coder *coder)
 		if (dongle->queue[i] == NULL)
 		{
 			dongle->queue[i] = coder;
-			break;
+			break ;
 		}
 		i++;
 	}
