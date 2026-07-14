@@ -30,6 +30,10 @@ int	avail(t_dongle *dongle)
 	return (0);
 }
 
+
+/*
+* A thread needs to wait for the dongle to cooldown, but how to make it sleep?
+*/
 void	take_dongle(t_coder *coder, t_dongle *dongle, suseconds_t *t)
 {
 	struct timeval	t_measure;
@@ -77,8 +81,8 @@ void	*coder_rutine(void *args)
 
 	coder = ((t_coder_args *)args)->coder;
 	t = ((t_coder_args *)args)->t;
-	take_dongle(coder, coder->dongles[0]);
-	take_dongle(coder, coder->dongles[1]);
+	take_dongle(coder, coder->dongles[0], t);
+	take_dongle(coder, coder->dongles[1], t);
 	print_action(coder, "compiling");
 	usleep(coder->compt_time);
 	gettimeofday(&t_measure, NULL);
