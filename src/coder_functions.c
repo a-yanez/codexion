@@ -30,29 +30,29 @@ int	avail(t_dongle *dongle)
 	return (0);
 }
 
-void	take_dongle(t_coder *coder, t_dongle *dongle)
+void	take_dongle(t_coder *coder, t_dongle *dongle, suseconds_t *t)
 {
 	struct timeval	t_measure;
-	suseconds_t		t;
 
 	pthread_mutex_lock(&dongle->lock);
 	queue(dongle, coder);
+	while(*t - dongle->last_used < dongle->cool_down)
+		usleep(1);
 	while (dongle->on_use && &dongle->queue[0] != &coder)
 		pthread_cond_wait(&dongle->cond, &dongle->lock);
 	dongle->on_use = 1;
 	gettimeofday(&t_measure, NULL);
-	t = t_measure.tv_usec / 1000;
 	pop(dongle);
 	pthread_mutex_unlock(&dongle->lock);
 	pthread_mutex_lock(coder->printer);
-	printf("%ld %d has taken a dongle\n", t, coder->n_id);
+	printf("%ld %d has taken a dongle\n", (*t / 1000), coder->n_id);
 	pthread_mutex_unlock(coder->printer);
 }
 
-void	release_dongle(t_coder *coder, t_dongle *dongle, struct timeval tm)
+void	release_dongle(t_coder *coder, t_dongle *dongle, suseconds_t *t)
 {
 	pthread_mutex_lock(&dongle->lock);
-	dongle->last_used = tm.tv_usec;
+	dongle->last_used = *t;
 	dongle->on_use = 0;
 	pthread_mutex_unlock(&dongle->lock);
 }
@@ -73,15 +73,17 @@ void	*coder_rutine(void *args)
 {
 	t_coder			*coder;
 	struct timeval	t_measure;
+	suseconds_t 	*t;
 
-	coder = (t_coder *)args;
+	coder = ((t_coder_args *)args)->coder;
+	t = ((t_coder_args *)args)->t;
 	take_dongle(coder, coder->dongles[0]);
 	take_dongle(coder, coder->dongles[1]);
 	print_action(coder, "compiling");
 	usleep(coder->compt_time);
 	gettimeofday(&t_measure, NULL);
-	release_dongle(coder, coder->dongles[0], t_measure);
-	release_dongle(coder, coder->dongles[1], t_measure);
+	release_dongle(coder, coder->dongles[0], t);
+	release_dongle(coder, coder->dongles[1], t);
 	print_action(coder, "debugging");
 	usleep(coder->db_time);
 	print_action(coder, "refactoring");

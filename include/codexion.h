@@ -52,12 +52,18 @@ typedef struct s_monitor
 }	t_monitor;
 
 //Args structure
-typedef struct s_args
+typedef struct s_monitor_args
 {
 	int				*data;
 	char			*sched;
 	pthread_mutex_t	*printer;
 }	t_args;
+
+typedef struct s_coder_arguments
+{
+	t_coder		*coder;
+	suseconds_t	*t;
+}	t_coder_args;
 
 // parser functions
 int		parser(char **argv, int **arg_list, char **sched);
