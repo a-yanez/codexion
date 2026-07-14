@@ -18,6 +18,18 @@
 #include <stdio.h>
 #include <unistd.h>
 
+//INCLUDE A TIMER VARIABLE FOR THE DONGLE TO READ!!!!!
+
+int	avail(t_dongle *dongle)
+{
+	struct timeval	t_measure;
+
+	gettimeofday(&t_measure, NULL);
+	if (t_measure.tv_usec < dongle->last_used + dongle->cool_down)
+		return (1);
+	return (0);
+}
+
 void	take_dongle(t_coder *coder, t_dongle *dongle)
 {
 	struct timeval	t_measure;
@@ -37,19 +49,12 @@ void	take_dongle(t_coder *coder, t_dongle *dongle)
 	pthread_mutex_unlock(coder->printer);
 }
 
-int	release_dongle(t_coder *coder, t_dongle *left, t_dongle *right)
+void	release_dongle(t_coder *coder, t_dongle *dongle, struct timeval tm)
 {
-	struct timeval	time_measure;
-
-	if (gettimeofday(&time_measure, NULL) < 0)
-		return (-1);
-	pthread_mutex_lock(&left->lock);
-	left->last_used = time_measure.tv_usec;
-	pthread_mutex_unlock(&left->lock);
-	pthread_mutex_lock(&right->lock);
-	right->last_used = time_measure.tv_usec;
-	pthread_mutex_unlock(&right->lock);
-	return (1);
+	pthread_mutex_lock(&dongle->lock);
+	dongle->last_used = tm.tv_usec;
+	dongle->on_use = 0;
+	pthread_mutex_unlock(&dongle->lock);
 }
 
 void	print_action(t_coder *coder, char *action)
@@ -66,13 +71,17 @@ void	print_action(t_coder *coder, char *action)
 
 void	*coder_rutine(void *args)
 {
-	t_coder		*coder;
+	t_coder			*coder;
+	struct timeval	t_measure;
 
 	coder = (t_coder *)args;
 	take_dongle(coder, coder->dongles[0]);
 	take_dongle(coder, coder->dongles[1]);
 	print_action(coder, "compiling");
 	usleep(coder->compt_time);
+	gettimeofday(&t_measure, NULL);
+	release_dongle(coder, coder->dongles[0], t_measure);
+	release_dongle(coder, coder->dongles[1], t_measure);
 	print_action(coder, "debugging");
 	usleep(coder->db_time);
 	print_action(coder, "refactoring");
