@@ -11,6 +11,7 @@
 /* ************************************************************************** */
 
 #include "codexion.h"
+#include "utils/utils.h"
 #include <bits/types/struct_timeval.h>
 #include <pthread.h>
 #include <stdio.h>
@@ -18,79 +19,55 @@
 #include <stdio.h>
 #include <unistd.h>
 
-//INCLUDE A TIMER VARIABLE FOR THE DONGLE TO READ!!!!!
-
-int	avail(t_dongle *dongle)
+void	take_dongle(t_coder *coder, t_dongle *dongle, struct timeval *t)
 {
-	struct timeval	t_measure;
-
-	gettimeofday(&t_measure, NULL);
-	if (t_measure.tv_usec < dongle->last_used + dongle->cool_down)
-		return (1);
-	return (0);
-}
-
-
-/*
-* A thread needs to wait for the dongle to cooldown, but how to make it sleep?
-*/
-void	take_dongle(t_coder *coder, t_dongle *dongle, suseconds_t *t)
-{
-	struct timeval	t_measure;
-
 	pthread_mutex_lock(&dongle->lock);
 	queue(dongle, coder);
-	while(*t - dongle->last_used < dongle->cool_down)
-		usleep(1);
-	while (dongle->on_use && &dongle->queue[0] != &coder)
+	while (dongle->on_use || &dongle->queue[0] != &coder)
 		pthread_cond_wait(&dongle->cond, &dongle->lock);
+	while (t_diff(*t, dongle->last_used) < dongle->cool_down)
+		pthread_cond_timedwait(&dongle->cond, &dongle->lock, &dongle->ts);
 	dongle->on_use = 1;
-	gettimeofday(&t_measure, NULL);
 	pop(dongle);
 	pthread_mutex_unlock(&dongle->lock);
 	pthread_mutex_lock(coder->printer);
-	printf("%ld %d has taken a dongle\n", (*t / 1000), coder->n_id);
+	printf("%ld %d has taken a dongle\n", t_diff(*t, *coder->ref), coder->n_id);
 	pthread_mutex_unlock(coder->printer);
 }
 
-void	release_dongle(t_coder *coder, t_dongle *dongle, suseconds_t *t)
+void	release_dongle(t_coder *coder, t_dongle *dongle, struct timeval *t)
 {
 	pthread_mutex_lock(&dongle->lock);
-	dongle->last_used = *t;
+	gettimeofday(&dongle->last_used, NULL);
+	set_timeout(&dongle->ts, dongle->cool_down);
 	dongle->on_use = 0;
+	pthread_cond_signal(&dongle->cond);
 	pthread_mutex_unlock(&dongle->lock);
 }
 
-void	print_action(t_coder *coder, char *action)
+void	print_action(t_coder *coder, char *action, struct timeval *t)
 {
-	struct timeval	t_measure;
-	suseconds_t		t;
-
 	pthread_mutex_lock(coder->printer);
-	gettimeofday(&t_measure, NULL);
-	t = t_measure.tv_usec / 1000;
-	printf("%ld %d is %s\n", t, coder->n_id, action);
+	printf("%ld %d is %s\n", t_diff(*t, *coder->ref), coder->n_id, action);
 	pthread_mutex_unlock(coder->printer);
 }
 
 void	*coder_rutine(void *args)
 {
 	t_coder			*coder;
-	struct timeval	t_measure;
-	suseconds_t 	*t;
+	struct timeval	*t;
 
 	coder = ((t_coder_args *)args)->coder;
 	t = ((t_coder_args *)args)->t;
 	take_dongle(coder, coder->dongles[0], t);
 	take_dongle(coder, coder->dongles[1], t);
-	print_action(coder, "compiling");
+	print_action(coder, "compiling", t);
 	usleep(coder->compt_time);
-	gettimeofday(&t_measure, NULL);
 	release_dongle(coder, coder->dongles[0], t);
 	release_dongle(coder, coder->dongles[1], t);
-	print_action(coder, "debugging");
+	print_action(coder, "debugging", t);
 	usleep(coder->db_time);
-	print_action(coder, "refactoring");
+	print_action(coder, "refactoring", t);
 	usleep(coder->refac_time);
 	return (NULL);
 }

@@ -13,23 +13,27 @@
 #ifndef CODEXION_H
 # define CODEXION_H
 
+# include <bits/types/struct_timeval.h>
 # include <unistd.h>
 # include <pthread.h>
 # include <sys/time.h>
+# include <time.h>
 
 // Coders and dongles structure
-typedef struct s_dongle t_dongle;
-typedef struct s_coder t_coder;
+typedef struct s_dongle	t_dongle;
+typedef struct s_coder	t_coder;
 
 typedef struct s_dongle
 {
 	pthread_mutex_t	lock;
 	pthread_cond_t	cond;
-	suseconds_t 	last_used;
-	int				cool_down;
+	struct timeval	last_used;
+	suseconds_t		cool_down;
 	int				on_use;
 	int				edf;
+	struct timespec	ts;
 	t_coder			*queue[2];
+
 }	t_dongle;
 
 typedef struct s_coder
@@ -42,7 +46,8 @@ typedef struct s_coder
 	suseconds_t		refac_time;
 	struct s_dongle	*dongles[2];
 	suseconds_t		burnout;
-	suseconds_t 	last_compile_start;
+	struct timeval	last_compile_start;
+	struct timeval	*ref;
 	pthread_mutex_t	*printer;
 }	t_coder;
 
@@ -61,15 +66,15 @@ typedef struct s_monitor_args
 
 typedef struct s_coder_arguments
 {
-	t_coder		*coder;
-	suseconds_t	*t;
+	t_coder			*coder;
+	struct timeval	*t;
 }	t_coder_args;
 
 // parser functions
 int		parser(char **argv, int **arg_list, char **sched);
 
 // initializer functions
-int	init_wrapper(t_coder **coders, t_dongle **dongles, t_args *args);
+int		init_wrapper(t_coder **coders, t_dongle **dongles, t_args *args);
 
 //monitor functions
 void	*run_codexion(void *args);

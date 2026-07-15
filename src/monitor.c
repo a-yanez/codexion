@@ -10,23 +10,12 @@
 /*                                                                            */
 /* ************************************************************************** */
 
+#include <bits/types/struct_timeval.h>
 #include <stdio.h>
-#include <unistd.h>
+#include <sys/time.h>
 #include <pthread.h>
 #include "codexion.h"
 #include "utils/utils.h"
-
-int	check_avail(t_dongle *dongle)
-{
-	struct timeval	time_measure;
-
-	gettimeofday(&time_measure, NULL);
-	if (time_measure.tv_usec - dongle->last_used > dongle->cool_down)
-	{
-		dongle->on_use = 0;
-	}
-	return (1);
-}
 
 int	init_cond(t_dongle *dongles, int num)
 {
@@ -43,27 +32,33 @@ int	init_cond(t_dongle *dongles, int num)
 	return (1);
 }
 
+void	pass_the_ref(t_coder **coders, struct timeval *ref, int num)
+{
+	int	i;
+
+	i = 0;
+	while (i < num)
+	{
+		coders[i]->ref = ref;
+		i++;
+	}
+}
+
 void	*run_codexion(void *args)
 {
 	int				i;
-	int				*data;
+	struct timeval	ref;
 	struct s_coder	*coders;
 	struct s_dongle	*dongles;
 
-	data = ((t_args *)args)->data;
 	i = init_wrapper(&coders, &dongles, (t_args *) args);
-	if (i)
+	if (!init_cond(dongles, ((t_args *)args)->data[0]))
 	{
-		printf("Coders and dongles initialized correctly\n");
-		printf("The right dongle of coder # %d is %p\n", coders[data[0] - 1].n_id, coders[data[0] - 1].dongles[0]);
-		printf("The left dongle of code # %d coder is %p\n", coders[0].n_id, coders[0].dongles[1]);
-	}
-	if (!init_cond(dongles, data[0]))
-	{
-		free_dongles(&dongles, data[0] - 1);
-		free_coders(&coders, data[0] - 1);
+		free_dongles(&dongles, ((t_args *)args)->data[0] - 1);
+		free_coders(&coders, ((t_args *)args)->data[0] - 1);
 		return (NULL);
 	}
+	gettimeofday(&ref, NULL);
 	// NEXT IDEA! Using a cond variable to indicate that i is now false? Maybe the coders can access it?
 	return (NULL);
 }

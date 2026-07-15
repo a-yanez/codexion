@@ -45,11 +45,10 @@ static t_dongle	*dongle_init(int *data, char *sched)
 	i = 0;
 	while (i < data[0])
 	{
-		dongles[i].cool_down = data[6];
+		dongles[i].cool_down = data[6] * 1000;
 		dongles[i].on_use = 0;
 		dongles[i].queue[0] = NULL;
 		dongles[i].queue[1] = NULL;
-		dongles[i].last_used = 0;
 		dongles[i].edf = k;
 		i++;
 	}
@@ -73,7 +72,6 @@ static t_coder	*coder_init(int *data)
 		coders[i].db_time = data[3] * 1000;
 		coders[i].refac_time = data[4] * 1000;
 		coders[i].cycles = data[5];
-		coders[i].last_compile_start = 0;
 		i++;
 	}
 	return (coders);
