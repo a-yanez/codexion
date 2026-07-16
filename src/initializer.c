@@ -96,24 +96,24 @@ int	init_wrapper(t_coder **coders, t_dongle **dongles, t_args *args)
 	int				i;
 
 	*coders = coder_init(((t_args *)args)->data);
-	if (!pthread_mutex_init(((t_args *)args)->printer, NULL))
+	if (!pthread_mutex_init(&((t_args *)args)->printer, NULL))
 		return (0);
 	if (!(*coders))
 	{
-		pthread_mutex_destroy(((t_args *)args)->printer);
+		pthread_mutex_destroy(&((t_args *)args)->printer);
 		return (0);
 	}
 	*dongles = dongle_init(((t_args *)args)->data, ((t_args *)args)->sched);
 	if (!(*dongles))
 	{
-		pthread_mutex_destroy(((t_args *)args)->printer);
+		pthread_mutex_destroy(&((t_args *)args)->printer);
 		free_coders(coders, ((t_args *)args)->data[0] - 1);
 		return (0);
 	}
 	i = 0;
 	while (i < ((t_args *)args)->data[0])
 	{
-		(*coders)[i].printer = ((t_args *)args)->printer;
+		(*coders)[i].printer = &((t_args *)args)->printer;
 		assign_dongles(&((*coders)[i]), dongles, i, ((t_args *)args)->data[0]);
 		i++;
 	}

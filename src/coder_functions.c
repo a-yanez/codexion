@@ -19,7 +19,21 @@
 #include <stdio.h>
 #include <unistd.h>
 
-void	take_dongle(t_coder *coder, t_dongle *dongle, struct timeval *t)
+void	barrier_wait(t_coder_args *c_args)
+{
+	pthread_mutex_lock(c_args->begin_mtx);
+	*c_args->coder_ready++;
+	if (*c_args->coder_ready < *c_args->coder_num + 1)
+		pthread_cond_wait(c_args->begin_cnd, c_args->begin_mtx);
+	else
+	{
+		*c_args->coder_ready = 0;
+		pthread_cond_broadcast(c_args->begin_cnd);
+	}
+	pthread_mutex_unlock(&c_args->begin_mtx);
+}
+
+static void	take_dongle(t_coder *coder, t_dongle *dongle, struct timeval *t)
 {
 	pthread_mutex_lock(&dongle->lock);
 	queue(dongle, coder);
@@ -35,7 +49,7 @@ void	take_dongle(t_coder *coder, t_dongle *dongle, struct timeval *t)
 	pthread_mutex_unlock(coder->printer);
 }
 
-void	release_dongle(t_coder *coder, t_dongle *dongle, struct timeval *t)
+static void	release_dongle(t_coder *coder, t_dongle *dongle, struct timeval *t)
 {
 	pthread_mutex_lock(&dongle->lock);
 	gettimeofday(&dongle->last_used, NULL);
@@ -45,7 +59,7 @@ void	release_dongle(t_coder *coder, t_dongle *dongle, struct timeval *t)
 	pthread_mutex_unlock(&dongle->lock);
 }
 
-void	print_action(t_coder *coder, char *action, struct timeval *t)
+static void	print_action(t_coder *coder, char *action, struct timeval *t)
 {
 	pthread_mutex_lock(coder->printer);
 	printf("%ld %d is %s\n", t_diff(*t, *coder->ref), coder->n_id, action);
@@ -57,6 +71,7 @@ void	*coder_rutine(void *args)
 	t_coder			*coder;
 	struct timeval	*t;
 
+	barrier_wait((t_coder_args *)args);
 	coder = ((t_coder_args *)args)->coder;
 	t = ((t_coder_args *)args)->t;
 	take_dongle(coder, coder->dongles[0], t);

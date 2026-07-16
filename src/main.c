@@ -29,6 +29,7 @@ t_args	*argumenting(char **argv, int **data, char **sched)
 	}
 	args->data = *data;
 	args->sched = *sched;
+	args->coder_ready = 0;
 	return (args);
 }
 

@@ -40,6 +40,7 @@ typedef struct s_coder
 {
 	int				n_id;
 	int				cycles;
+	int				comp_times;
 	pthread_t		thread_id;
 	suseconds_t		compt_time;
 	suseconds_t		db_time;
@@ -61,13 +62,20 @@ typedef struct s_monitor_args
 {
 	int				*data;
 	char			*sched;
-	pthread_mutex_t	*printer;
+	int				coder_ready;
+	pthread_mutex_t	begin_mtx;
+	pthread_cond_t	begin_cnd;
+	pthread_mutex_t	printer;
 }	t_args;
 
 typedef struct s_coder_arguments
 {
 	t_coder			*coder;
 	struct timeval	*t;
+	int				*coder_ready;
+	int				*coder_num;
+	pthread_mutex_t	*begin_mtx;
+	pthread_cond_t	*begin_cnd;
 }	t_coder_args;
 
 // parser functions
@@ -78,6 +86,10 @@ int		init_wrapper(t_coder **coders, t_dongle **dongles, t_args *args);
 
 //monitor functions
 void	*run_codexion(void *args);
+
+//coder functions
+void	barrier_wait(t_coder_args *c_args);
+void	*coder_rutine(void *args);
 
 //dongle functions
 void	edf(t_dongle *dongle);
