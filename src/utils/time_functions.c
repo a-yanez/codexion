@@ -40,7 +40,6 @@ static void	add_ms_to_timespec(struct timespec *ts, int ms)
 	}
 }
 
-// Set absolute timeout using gettimeofday()
 void	set_timeout(struct timespec *ts, int timeout_ms)
 {
 	struct timeval	tv;

@@ -76,7 +76,7 @@ typedef struct s_coder_arguments
 	int				*coder_num;
 	pthread_mutex_t	*begin_mtx;
 	pthread_cond_t	*begin_cnd;
-}	t_coder_args;
+}	t_c_args;
 
 // parser functions
 int		parser(char **argv, int **arg_list, char **sched);
@@ -88,7 +88,7 @@ int		init_wrapper(t_coder **coders, t_dongle **dongles, t_args *args);
 void	*run_codexion(void *args);
 
 //coder functions
-void	barrier_wait(t_coder_args *c_args);
+void	barrier_wait(t_c_args *c_args);
 void	*coder_rutine(void *args);
 
 //dongle functions

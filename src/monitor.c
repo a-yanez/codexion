@@ -12,8 +12,10 @@
 
 #include <bits/types/struct_timeval.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <sys/time.h>
 #include <pthread.h>
+#include <unistd.h>
 #include "codexion.h"
 #include "utils/utils.h"
 
@@ -29,22 +31,28 @@ parameters:
 7. dongle cooldown - idx 6
  */
 
-int	init_cond(t_dongle *dongles, int num)
+static int	init_cond_mtx(t_args *args, t_dongle *dongles)
 {
 	int	i;
 
+	if (pthread_cond_init(&args->begin_cnd, NULL))
+		return (0);
+	if (pthread_mutex_init(&args->begin_mtx, NULL))
+		return (0);
 	i = 0;
-	while (i < num)
+	while (i < args->data[0])
 	{
 		printf("Activating cond init in dongle %p\n", &dongles[i]);
 		if (pthread_cond_init(&dongles[i].cond, NULL))
+			return (0);
+		if (pthread_mutex_init(&dongles[i].lock, NULL))
 			return (0);
 		i++;
 	}
 	return (1);
 }
 
-void	pass_the_ref(t_coder **coders, struct timeval *ref, int num)
+static void	pass_the_ref(t_coder **coders, struct timeval *ref, int num)
 {
 	int	i;
 
@@ -56,12 +64,12 @@ void	pass_the_ref(t_coder **coders, struct timeval *ref, int num)
 	}
 }
 
-t_coder_args	*create_c_args(t_args *args, t_coder *coders, struct timeval *t)
+static t_c_args	*create_c_args(t_args *args, t_coder *coders, struct timeval *t)
 {
-	int				i;
-	t_coder_args	*c_args;
+	int			i;
+	t_c_args	*c_args;
 
-	c_args = (t_coder_args *)malloc(sizeof(t_coder_args) * args->data[0]);
+	c_args = (t_c_args *)malloc(sizeof(t_c_args) * args->data[0]);
 	if (!c_args)
 		return (NULL);
 	i = 0;
@@ -78,28 +86,35 @@ t_coder_args	*create_c_args(t_args *args, t_coder *coders, struct timeval *t)
 	return (c_args);
 }
 
+static int	coders_working(t_args *args)
+{
+	return (args->coder_ready > 0 && args->coder_ready < args->data[0]);
+}
+
 void	*run_codexion(void *args)
 {
 	int				i;
 	struct timeval	ref[2];
 	t_coder			*coders;
 	t_dongle		*dongles;
-	t_coder_args	*c_args;
+	t_c_args		*c_args;
 
 	i = init_wrapper(&coders, &dongles, (t_args *) args);
-	if (!init_cond(dongles, ((t_args *)args)->data[0]))
+	if (!i || !init_cond_mtx(((t_args *)args), dongles))
 	{
 		free_dongles(&dongles, ((t_args *)args)->data[0] - 1);
 		free_coders(&coders, ((t_args *)args)->data[0] - 1);
 		return (NULL);
 	}
-	gettimeofday(&ref[0], NULL);
-	i = 1;
-	while (i)
+	i = 0;
+	while (i < ((t_args *)args)->data[0])
 	{
-		//something
+		pthread_create(&coders[i].thread_id, NULL, coder_rutine, &c_args[i]);
+		i++;
 	}
-	// NEXT IDEA! Using a cond variable to indicate that i is now false?
-	// Maybe the coders can access it?
+	gettimeofday(&ref[0], NULL);
+	barrier_wait(&c_args[0]);
+	while (coders_working((t_args *)args))
+		gettimeofday(&ref[1], NULL);
 	return (NULL);
 }

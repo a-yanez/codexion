@@ -28,7 +28,7 @@ void	edf(t_dongle *dongle)
 	coder_b = dongle->queue[1];
 	if (coder_b != NULL)
 	{
-		if (coder_a->last_compile_start > coder_b->last_compile_start)
+		if (t_diff(coder_a->last_compile_start, coder_b->last_compile_start) > 0)
 			ft_pswap((void **)&coder_a, (void **)&coder_b);
 	}
 }
