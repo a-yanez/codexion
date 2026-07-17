@@ -19,17 +19,15 @@
 
 void	edf(t_dongle *dongle)
 {
-	t_coder			*tmp;
-	t_coder			*coder_a;
-	t_coder			*coder_b;
-	struct timeval	time_store;
+	t_coder			*codr_a;
+	t_coder			*codr_b;
 
-	coder_a = dongle->queue[0];
-	coder_b = dongle->queue[1];
-	if (coder_b != NULL)
+	codr_a = dongle->queue[0];
+	codr_b = dongle->queue[1];
+	if (codr_b != NULL)
 	{
-		if (t_diff(coder_a->last_compile_start, coder_b->last_compile_start) > 0)
-			ft_pswap((void **)&coder_a, (void **)&coder_b);
+		if (t_diff(codr_a->last_compile_start, codr_b->last_compile_start) > 0)
+			ft_pswap((void **)&codr_a, (void **)&codr_b);
 	}
 }
 

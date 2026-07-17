@@ -63,6 +63,7 @@ typedef struct s_monitor_args
 	int				*data;
 	char			*sched;
 	int				coder_ready;
+	struct timeval	ref_t[2];
 	pthread_mutex_t	begin_mtx;
 	pthread_cond_t	begin_cnd;
 	pthread_mutex_t	printer;
@@ -95,5 +96,11 @@ void	*coder_rutine(void *args);
 void	edf(t_dongle *dongle);
 void	queue(t_dongle *dongle, t_coder *coder);
 void	pop(t_dongle *dongle);
+
+//conds and mutex
+int		destroy_conds(t_args *args, t_dongle *dongles, int i);
+int		init_cond(t_args *args, t_dongle *dongles);
+int		destroy_mutex(t_args *args, t_dongle *dongles, int i);
+int		init_mutex(t_args *args, t_dongle *dongles);
 
 #endif

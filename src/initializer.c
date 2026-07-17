@@ -95,6 +95,7 @@ int	init_wrapper(t_coder **coders, t_dongle **dongles, t_args *args)
 {
 	int				i;
 
+	*coders = coder_init(((t_args *)args)->data);
 	if (!(*coders))
 		return (0);
 	*dongles = dongle_init(((t_args *)args)->data, ((t_args *)args)->sched);
