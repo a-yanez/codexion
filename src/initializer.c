@@ -30,15 +30,11 @@ parameters:
 7. dongle cooldown - idx 6
  */
 
-static t_dongle	*dongle_init(int *data, char *sched)
+static t_dongle	*dongle_init(int *data)
 {
 	struct s_dongle	*dongles;
 	int				i;
-	int				k;
 
-	k = 0;
-	if (strcmp(sched, "edf") == 0)
-		k = 1;
 	dongles = (t_dongle *)malloc(sizeof(t_dongle) * data[0]);
 	if (!dongles)
 		return (NULL);
@@ -49,7 +45,7 @@ static t_dongle	*dongle_init(int *data, char *sched)
 		dongles[i].on_use = 0;
 		dongles[i].queue[0] = NULL;
 		dongles[i].queue[1] = NULL;
-		dongles[i].edf = k;
+		dongles[i].edf = data[7];
 		i++;
 	}
 	return (dongles);
@@ -98,7 +94,7 @@ int	init_wrapper(t_coder **coders, t_dongle **dongles, t_args *args)
 	*coders = coder_init(((t_args *)args)->data);
 	if (!(*coders))
 		return (0);
-	*dongles = dongle_init(((t_args *)args)->data, ((t_args *)args)->sched);
+	*dongles = dongle_init(((t_args *)args)->data);
 	if (!(*dongles))
 	{
 		free_coders(coders, ((t_args *)args)->data[0] - 1);

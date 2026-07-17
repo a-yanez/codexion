@@ -15,16 +15,22 @@
 #include <string.h>
 #include "utils/utils.h"
 
-int	sched_cmp(char *sched)
+int	sched_cmp(char *sched, int *sched_arg)
 {
 	int	ok;
 
 	ok = strcmp(sched, "fifo");
 	if (ok == 0)
+	{
+		*sched_arg = 0;
 		return (1);
+	}
 	ok = strcmp(sched, "edf");
 	if (ok == 0)
+	{
+		*sched_arg = 1;
 		return (1);
+	}
 	fprintf(stderr, "Error: Scheduler must be 'fifo' or 'edf'.\n");
 	return (0);
 }
@@ -59,12 +65,12 @@ int	just_positives(int *args)
 	return (1);
 }
 
-int	parser(char **argv, int **arg_list, char **sched)
+int	parser(char **argv, int **arg_list)
 {
 	int	i;
 
 	i = 0;
-	*arg_list = (int *)malloc(sizeof(int) * 7);
+	*arg_list = (int *)malloc(sizeof(int) * 8);
 	if (*arg_list == NULL)
 	{
 		fprintf(stderr, "Error: memory allocation failed during parsing.\n");
@@ -81,8 +87,7 @@ int	parser(char **argv, int **arg_list, char **sched)
 			return (0);
 		}
 	}
-	sched = &argv[8];
-	if (just_positives(*arg_list) != 1 || sched_cmp(*sched) != 1)
+	if (just_positives(*arg_list) != 1 || sched_cmp(argv[8], arg_list[7]) != 1)
 		return (0);
 	return (1);
 }

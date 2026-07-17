@@ -15,11 +15,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-t_args	*argumenting(char **argv, int **data, char **sched)
+t_args	*argumenting(char **argv, int **data)
 {
 	t_args	*args;
 
-	if (!parser(argv, data, sched))
+	if (!parser(argv, data))
 		return (NULL);
 	args = (t_args *)malloc(sizeof(t_args));
 	if (!args)
@@ -28,7 +28,6 @@ t_args	*argumenting(char **argv, int **data, char **sched)
 		return (NULL);
 	}
 	args->data = *data;
-	args->sched = *sched;
 	args->coder_ready = 0;
 	return (args);
 }
@@ -36,7 +35,6 @@ t_args	*argumenting(char **argv, int **data, char **sched)
 int	main(int argc, char **argv)
 {
 	int			*data;
-	char		*sched;
 	t_args		*args;
 	pthread_t	monitor;
 
@@ -45,7 +43,7 @@ int	main(int argc, char **argv)
 		fprintf(stderr, "Error: invalid number of arguments.\n");
 		return (1);
 	}
-	args = argumenting(argv, &data, &sched);
+	args = argumenting(argv, &data);
 	if (!args)
 		return (1);
 	pthread_create(&monitor, NULL, run_codexion, args);
