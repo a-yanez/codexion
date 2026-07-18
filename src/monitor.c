@@ -100,13 +100,12 @@ void	*run_codexion(void *args)
 	i = 0;
 	while (i < ((t_args *)args)->data[0])
 	{
-		printf("Creating thread!\n");
 		pthread_create(&coders[i].thread_id, NULL, coder_rutine, &c_args[i]);
-		printf("Thread created!\n");
 		i++;
 	}
 	gettimeofday(&((t_args *)args)->ref_t[0], NULL);
 	barrier_wait(&c_args[0]);
+	printf("Work bitches!\n");
 	while (coders_working((t_args *)args))
 		gettimeofday(&((t_args *)args)->ref_t[1], NULL);
 	return (NULL);

@@ -38,11 +38,11 @@ void	barrier_wait(t_c_args *c_args)
 	pthread_mutex_unlock(c_args->begin_mtx);
 }
 
-static void	take_dongle(t_coder *coder, t_dongle *dongle, struct timeval *t)
+static void	take_dongle(t_coder *coder, t_dongle *dongle, volatile struct timeval *t)
 {
 	pthread_mutex_lock(&dongle->lock);
 	queue(dongle, coder);
-	while (dongle->on_use || &dongle->queue[0] != &coder)
+	while (dongle->on_use || dongle->queue[0]->n_id != coder->n_id)
 		pthread_cond_wait(&dongle->cond, &dongle->lock);
 	while (t_diff(*t, dongle->last_used) < dongle->cool_down)
 		pthread_cond_timedwait(&dongle->cond, &dongle->lock, &dongle->ts);
@@ -64,7 +64,7 @@ static void	release_dongle(t_dongle *dongle)
 	pthread_mutex_unlock(&dongle->lock);
 }
 
-static void	print_action(t_coder *coder, char *action, struct timeval *t)
+static void	print_action(t_coder *coder, char *action, volatile struct timeval *t)
 {
 	pthread_mutex_lock(coder->printer);
 	printf("%ld %d is %s\n", t_diff(*t, *coder->ref), coder->n_id, action);
@@ -84,6 +84,7 @@ void	*coder_rutine(void *args)
 		take_dongle(coder, coder->dongles[0], t);
 		take_dongle(coder, coder->dongles[1], t);
 		print_action(coder, "compiling", t);
+		gettimeofday(&coder->last_compile_start, NULL);
 		usleep(coder->compt_time);
 		release_dongle(coder->dongles[0]);
 		release_dongle(coder->dongles[1]);

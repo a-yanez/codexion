@@ -45,6 +45,8 @@ static t_dongle	*dongle_init(int *data)
 		dongles[i].on_use = 0;
 		dongles[i].queue[0] = NULL;
 		dongles[i].queue[1] = NULL;
+		dongles[i].last_used.tv_sec = 0;
+		dongles[i].last_used.tv_usec = 0;
 		dongles[i].edf = data[7];
 		i++;
 	}

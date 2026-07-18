@@ -16,6 +16,7 @@
 #include <pthread.h>
 #include <sys/time.h>
 #include <time.h>
+#include <stdio.h>
 
 void	edf(t_dongle *dongle)
 {

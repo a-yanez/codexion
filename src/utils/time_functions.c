@@ -31,7 +31,7 @@ static struct timespec	timeval_to_timespec(struct timeval tv)
 
 static void	add_ms_to_timespec(struct timespec *ts, int ms)
 {
-	ts->tv_sec += ms / 1000;
+	ts->tv_sec += (ms / 1000);
 	ts->tv_nsec += (ms % 1000) * 1000000;
 	if (ts->tv_nsec >= 1000000000)
 	{
