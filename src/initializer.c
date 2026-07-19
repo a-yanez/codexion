@@ -65,7 +65,6 @@ static t_coder	*coder_init(int *data)
 	while (i < data[0])
 	{
 		coders[i].n_id = i + 1;
-		coders[i].burnout = data[1] * 1000;
 		coders[i].compt_time = data[2] * 1000;
 		coders[i].db_time = data[3] * 1000;
 		coders[i].refac_time = data[4] * 1000;

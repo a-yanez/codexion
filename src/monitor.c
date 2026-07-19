@@ -85,6 +85,24 @@ static int	coders_working(t_args *args)
 	return (args->coder_ready >= 0 && args->coder_ready < args->data[0]);
 }
 
+static int	burnout(t_args *args, t_coder *coders)
+{
+	int				i;
+	suseconds_t		burnout;
+	struct timeval 	t;
+
+	i = 0;
+	t = args->ref_t[1];
+	burnout = args->data[1] * 1000;
+	while (i < args->data[0])
+	{
+		if (t_diff(t, coders[i].last_compile_start) >= burnout)
+			return (1);
+		i++;
+	}
+	return (0);
+}
+
 void	*run_codexion(void *args)
 {
 	int				i;
@@ -106,7 +124,7 @@ void	*run_codexion(void *args)
 	gettimeofday(&((t_args *)args)->ref_t[0], NULL);
 	barrier_wait(&c_args[0]);
 	printf("Work bitches!\n");
-	while (coders_working((t_args *)args))
+	while (coders_working((t_args *)args) && !burnout((t_args *)args, coders))
 		gettimeofday(&((t_args *)args)->ref_t[1], NULL);
 	return (NULL);
 }

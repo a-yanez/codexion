@@ -46,7 +46,6 @@ typedef struct s_coder
 	suseconds_t		db_time;
 	suseconds_t		refac_time;
 	struct s_dongle	*dongles[2];
-	suseconds_t		burnout;
 	struct timeval	last_compile_start;
 	struct timeval	*ref;
 	pthread_mutex_t	*printer;
