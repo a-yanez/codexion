@@ -25,6 +25,7 @@ void	ft_pswap(void **a, void **b);
 //Function to free memory
 void	free_dongles(t_dongle **dongles, int current);
 void	free_coders(t_coder **coders, int current);
+void	free_both(t_coder **coders, t_dongle **dongles, int current);
 
 // time functions
 void	set_timeout(struct timespec *ts, int timeout_ms);

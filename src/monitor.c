@@ -6,7 +6,7 @@
 /*   By: ayanez-o <ayanez-o@student.42barcelon      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/08 15:58:24 by ayanez-o          #+#    #+#             */
-/*   Updated: 2026/07/08 15:58:27 by ayanez-o         ###   ########.fr       */
+/*   Updated: 2026/07/20 14:46:48 by ayanez-o         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -41,8 +41,7 @@ static t_c_args	*create_c_args(t_args *args, t_coder *coders, t_dongle *dongles)
 	{
 		destroy_mutex(args, dongles, args->data[0] - 1);
 		destroy_conds(args, dongles, args->data[0] - 1);
-		free_dongles(&dongles, args->data[0] - 1);
-		free_coders(&coders, args->data[0] - 1);
+		free_both(&coders, &dongles, args->data[0] - 1);
 		return (NULL);
 	}
 	i = 0;
@@ -66,41 +65,31 @@ static int	set_the_table(t_coder **coders, t_dongle **dongles, t_args *args)
 		return (0);
 	if (!init_cond(args, *dongles))
 	{
-		free_dongles(dongles, args->data[0] - 1);
-		free_coders(coders, args->data[0] - 1);
+		free_both(coders, dongles, args->data[0] - 1);
 		return (0);
 	}
 	if (!init_mutex(args, *dongles))
 	{
 		destroy_conds(args, *dongles, args->data[0] - 1);
-		free_dongles(dongles, args->data[0] - 1);
-		free_coders(coders, args->data[0] - 1);
+		free_both(coders, dongles, args->data[0] - 1);
 		return (0);
 	}
 	return (1);
 }
 
-static int	coders_working(t_args *args)
-{
-	return (args->coder_ready >= 0 && args->coder_ready < args->data[0]);
-}
-
-static int	burnout(t_args *args, t_coder *coders)
+void	pass_the_ref(t_args *args, t_coder *coders)
 {
 	int				i;
-	suseconds_t		burnout;
-	struct timeval 	t;
+	struct timeval	ref;
 
 	i = 0;
-	t = args->ref_t[1];
-	burnout = args->data[1] * 1000;
+	ref = args->ref_t[0];
 	while (i < args->data[0])
 	{
-		if (t_diff(t, coders[i].last_compile_start) >= burnout)
-			return (1);
+		coders[i].last_compile_start.tv_sec = ref.tv_sec;
+		coders[i].last_compile_start.tv_usec = ref.tv_usec;
 		i++;
 	}
-	return (0);
 }
 
 void	*run_codexion(void *args)
@@ -122,9 +111,13 @@ void	*run_codexion(void *args)
 		i++;
 	}
 	gettimeofday(&((t_args *)args)->ref_t[0], NULL);
+	pass_the_ref(((t_args *)args), coders);
 	barrier_wait(&c_args[0]);
-	printf("Work bitches!\n");
-	while (coders_working((t_args *)args) && !burnout((t_args *)args, coders))
+	while (coders_working((t_args *)args))
+	{
 		gettimeofday(&((t_args *)args)->ref_t[1], NULL);
+		if (burnout((t_args *)args, coders))
+			 break ;
+	}
 	return (NULL);
 }

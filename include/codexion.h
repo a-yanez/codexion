@@ -51,17 +51,13 @@ typedef struct s_coder
 	pthread_mutex_t	*printer;
 }	t_coder;
 
-typedef struct s_monitor
-{
-	pthread_t	*id_mon;
-}	t_monitor;
-
 //Args structure
 typedef struct s_monitor_args
 {
 	int				*data;
 	char			*sched;
 	int				coder_ready;
+	int				burnt_coder;
 	struct timeval	ref_t[2];
 	pthread_mutex_t	begin_mtx;
 	pthread_cond_t	begin_cnd;
@@ -86,6 +82,10 @@ int		init_wrapper(t_coder **coders, t_dongle **dongles, t_args *args);
 
 //monitor functions
 void	*run_codexion(void *args);
+
+//monitor utils functions
+int		coders_working(t_args *args);
+int		burnout(t_args *args, t_coder *coders);
 
 //coder functions
 void	barrier_wait(t_c_args *c_args);

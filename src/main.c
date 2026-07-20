@@ -34,6 +34,7 @@ t_args	*argumenting(char **argv, int **data)
 
 int	main(int argc, char **argv)
 {
+	int			i;
 	int			*data;
 	t_args		*args;
 	pthread_t	monitor;
@@ -46,7 +47,15 @@ int	main(int argc, char **argv)
 	args = argumenting(argv, &data);
 	if (!args)
 		return (1);
-	pthread_create(&monitor, NULL, run_codexion, args);
-	pthread_join(monitor, NULL);
-	return (0);
+	i = pthread_create(&monitor, NULL, run_codexion, args);
+	if (i)
+		fprintf(stderr, "Monitor thread creation failed.\n");
+	else
+	{
+		i = pthread_join(monitor, NULL);
+		if (i)
+			fprintf(stderr, "Monitor thread could not be joined.\n");
+	}
+	free(args);
+	return (i);
 }

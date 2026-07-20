@@ -31,3 +31,9 @@ void	free_coders(t_coder **coders, int current)
 		current--;
 	}
 }
+
+void	free_both(t_coder **coders, t_dongle **dongles, int current)
+{
+	free_coders(coders, current);
+	free_dongles(dongles, current);
+}
