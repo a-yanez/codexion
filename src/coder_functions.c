@@ -16,86 +16,129 @@
 #include <pthread.h>
 #include <stdio.h>
 #include <sys/time.h>
-#include <stdio.h>
 #include <unistd.h>
 
-void	barrier_wait(t_c_args *c_args)
+static int	take_dongle(t_coder *coder, t_dongle *dongle, volatile struct timeval *t)
 {
-	pthread_mutex_lock(c_args->begin_mtx);
-	*c_args->coder_ready += 1;
-	printf("Adding a coder (or monitor): %d\n", *c_args->coder_ready);
-	if (*c_args->coder_ready < *c_args->coder_num + 1)
-	{
-		printf("Waiting\n");
-		pthread_cond_wait(c_args->begin_cnd, c_args->begin_mtx);
-	}
-	else
-	{
-		printf("Ready!\n");
-		*c_args->coder_ready = 0;
-		pthread_cond_broadcast(c_args->begin_cnd);
-	}
-	pthread_mutex_unlock(c_args->begin_mtx);
-}
+	int	signal;
 
-static void	take_dongle(t_coder *coder, t_dongle *dongle, volatile struct timeval *t)
-{
-	pthread_mutex_lock(&dongle->lock);
+	signal = safe_mutex_lock(&dongle->lock);
+	if (signal)
+		return (signal);
 	queue(dongle, coder);
 	while (dongle->on_use || dongle->queue[0]->n_id != coder->n_id)
-		pthread_cond_wait(&dongle->cond, &dongle->lock);
+	{
+		signal	= safe_cond_wait(&dongle->cond, &dongle->lock);
+		if (signal)
+			return (signal);
+	}
 	while (t_diff(*t, dongle->last_used) < dongle->cool_down)
-		pthread_cond_timedwait(&dongle->cond, &dongle->lock, &dongle->ts);
+	{
+		signal	= s_tmwt(&dongle->cond, &dongle->lock, &dongle->ts);
+		if (signal)
+			return (signal);
+	}
 	dongle->on_use = 1;
 	pop(dongle);
-	pthread_mutex_unlock(&dongle->lock);
-	pthread_mutex_lock(coder->printer);
-	printf("%ld %d has taken a dongle\n", t_diff(*t, *coder->ref), coder->n_id);
-	pthread_mutex_unlock(coder->printer);
+	signal = safe_mutex_unlock(&dongle->lock);
+	return (signal);
 }
 
-static void	release_dongle(t_dongle *dongle)
+static int	release_dongle(t_dongle *dongle)
 {
-	pthread_mutex_lock(&dongle->lock);
-	gettimeofday(&dongle->last_used, NULL);
-	set_timeout(&dongle->ts, dongle->cool_down);
+	int	signal;
+
+	signal = safe_mutex_lock(&dongle->lock);
+	if (signal)
+		return (signal);
+	signal = safe_gettimeofday(&dongle->last_used);
+	if (signal)
+		return (signal);
+	signal = set_timeout(&dongle->ts, dongle->cool_down);
+	if (signal)
+		return (signal);
 	dongle->on_use = 0;
-	pthread_cond_signal(&dongle->cond);
-	pthread_mutex_unlock(&dongle->lock);
+	signal = safe_cond_signal(&dongle->cond);
+	if (signal)
+		return (signal);
+	signal = safe_mutex_unlock(&dongle->lock);
+	if (signal)
+		return (signal);
+	signal = safe_mutex_unlock(&dongle->lock);
+	return (signal);
 }
 
-static void	print_action(t_coder *coder, char *action, volatile struct timeval *t)
+static int coder_loop_one(t_coder *coder, struct timeval *t)
 {
-	pthread_mutex_lock(coder->printer);
-	printf("%ld %d is %s\n", t_diff(*t, *coder->ref), coder->n_id, action);
-	pthread_mutex_unlock(coder->printer);
+	int	signal;
+
+	signal = take_dongle(coder, coder->dongles[0], t);
+	if (signal)
+		return (signal);
+	signal = print_take_dongle(coder, t);
+	if (signal)
+		return (signal);
+	take_dongle(coder, coder->dongles[1], t);
+	if (signal)
+		return (signal);
+	signal = print_action(coder, "compiling", t);
+	if (signal)
+		return (signal);
+	signal = safe_gettimeofday(&coder->last_compile_start);
+	if (signal)
+		return (signal);
+	usleep(coder->compt_time);
+	return (signal);
+}
+
+static int coder_loop_two(t_coder *coder, struct timeval *t)
+{
+	int	signal;
+
+	signal = release_dongle(coder->dongles[0]);
+	if (signal)
+		return (signal);
+	signal = release_dongle(coder->dongles[1]);
+	if (signal)
+		return (signal);
+	signal = print_action(coder, "debugging", t);
+	if (signal)
+		return (signal);
+	usleep(coder->db_time);
+	signal = print_action(coder, "refactoring", t);
+	if (signal)
+		return (signal);
+	usleep(coder->refac_time);
+	coder->comp_times += 1;
+	return (signal);
 }
 
 void	*coder_rutine(void *args)
 {
 	t_coder			*coder;
 	struct timeval	*t;
+	int 			signal;
 
-	barrier_wait((t_c_args *)args);
+	signal = barrier_wait((t_c_args *)args);
+	if (signal)
+		return (NULL);
 	coder = ((t_c_args *)args)->coder;
 	t = ((t_c_args *)args)->t;
-	while (coder->comp_times <= coder->cycles)
+	while (coder->comp_times <= coder->cycles && !signal)
 	{
-		take_dongle(coder, coder->dongles[0], t);
-		take_dongle(coder, coder->dongles[1], t);
-		print_action(coder, "compiling", t);
-		gettimeofday(&coder->last_compile_start, NULL);
-		usleep(coder->compt_time);
-		release_dongle(coder->dongles[0]);
-		release_dongle(coder->dongles[1]);
-		print_action(coder, "debugging", t);
-		usleep(coder->db_time);
-		print_action(coder, "refactoring", t);
-		usleep(coder->refac_time);
-		coder->comp_times += 1;
+		signal = coder_loop_one(coder, t);
+		if (signal)
+			break ;
+		signal = coder_loop_two(coder, t);
+		if (signal)
+			break ;
 	}
-	pthread_mutex_lock(((t_c_args *)args)->begin_mtx);
+	signal = safe_mutex_lock(((t_c_args *)args)->begin_mtx);
+	if (signal)
+		return (NULL);
 	*((t_c_args *)args)->coder_ready += 1;
-	pthread_mutex_unlock(((t_c_args *)args)->begin_mtx);
+	signal = safe_mutex_unlock(((t_c_args *)args)->begin_mtx);
+	if (signal)
+		return (NULL); //HERE SOMETHING ELSE!
 	return (NULL);
 }

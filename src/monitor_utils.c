@@ -22,7 +22,7 @@ int	burnout(t_args *args, t_coder *coders)
 {
 	int				i;
 	suseconds_t		burnout;
-	struct timeval 	t;
+	struct timeval	t;
 
 	i = 0;
 	t = args->ref_t[1];
@@ -41,7 +41,7 @@ int	burnout(t_args *args, t_coder *coders)
 
 int	kill_everything(t_coder **coders, t_dongle **dongles)
 {
-	int i;
+	int	i;
 
 	i = 0;
 	return (i);

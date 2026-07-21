@@ -117,7 +117,7 @@ void	*run_codexion(void *args)
 	{
 		gettimeofday(&((t_args *)args)->ref_t[1], NULL);
 		if (burnout((t_args *)args, coders))
-			 break ;
+			break ;
 	}
 	return (NULL);
 }

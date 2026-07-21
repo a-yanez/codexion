@@ -88,8 +88,12 @@ int		coders_working(t_args *args);
 int		burnout(t_args *args, t_coder *coders);
 
 //coder functions
-void	barrier_wait(t_c_args *c_args);
+int		barrier_wait(t_c_args *c_args);
 void	*coder_rutine(void *args);
+
+//coder utils
+int		print_take_dongle(t_coder *coder, volatile struct timeval *t);
+int		print_action(t_coder *coder, char *action, volatile struct timeval *t);
 
 //dongle functions
 void	edf(t_dongle *dongle);

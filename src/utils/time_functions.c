@@ -13,7 +13,21 @@
 #include "utils/utils.h"
 #include <bits/types/struct_timeval.h>
 #include <sys/time.h>
+#include <stdio.h>
 #include <time.h>
+
+int	safe_gettimeofday(struct timeval *t)
+{
+	int	signal;
+
+	signal = gettimeofday(t, NULL);
+	if (signal)
+	{
+		fprintf(stderr, "Time measurement failed\n");
+		return (signal);
+	}
+	return (signal);
+}
 
 static struct timespec	timeval_to_timespec(struct timeval tv)
 {
@@ -40,13 +54,17 @@ static void	add_ms_to_timespec(struct timespec *ts, int ms)
 	}
 }
 
-void	set_timeout(struct timespec *ts, int timeout_ms)
+int	set_timeout(struct timespec *ts, int timeout_ms)
 {
+	int				signal;
 	struct timeval	tv;
 
-	gettimeofday(&tv, NULL);
+	signal = safe_gettimeofday(&tv);
+	if (signal)
+		return (signal);
 	*ts = timeval_to_timespec(tv);
 	add_ms_to_timespec(ts, timeout_ms);
+	return (signal);
 }
 
 long	t_diff(struct timeval tv1, struct timeval tv2)
