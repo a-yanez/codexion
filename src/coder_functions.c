@@ -13,60 +13,8 @@
 #include "codexion.h"
 #include "utils/utils.h"
 #include <bits/types/struct_timeval.h>
-#include <pthread.h>
 #include <stdio.h>
-#include <sys/time.h>
 #include <unistd.h>
-
-static int	take_dongle(t_coder *coder, t_dongle *dongle, volatile struct timeval *t)
-{
-	int	signal;
-
-	signal = safe_mutex_lock(&dongle->lock);
-	if (signal)
-		return (signal);
-	queue(dongle, coder);
-	while (dongle->on_use || dongle->queue[0]->n_id != coder->n_id)
-	{
-		signal	= safe_cond_wait(&dongle->cond, &dongle->lock);
-		if (signal)
-			return (signal);
-	}
-	while (t_diff(*t, dongle->last_used) < dongle->cool_down)
-	{
-		signal	= s_tmwt(&dongle->cond, &dongle->lock, &dongle->ts);
-		if (signal)
-			return (signal);
-	}
-	dongle->on_use = 1;
-	pop(dongle);
-	signal = safe_mutex_unlock(&dongle->lock);
-	return (signal);
-}
-
-static int	release_dongle(t_dongle *dongle)
-{
-	int	signal;
-
-	signal = safe_mutex_lock(&dongle->lock);
-	if (signal)
-		return (signal);
-	signal = safe_gettimeofday(&dongle->last_used);
-	if (signal)
-		return (signal);
-	signal = set_timeout(&dongle->ts, dongle->cool_down);
-	if (signal)
-		return (signal);
-	dongle->on_use = 0;
-	signal = safe_cond_signal(&dongle->cond);
-	if (signal)
-		return (signal);
-	signal = safe_mutex_unlock(&dongle->lock);
-	if (signal)
-		return (signal);
-	signal = safe_mutex_unlock(&dongle->lock);
-	return (signal);
-}
 
 static int coder_loop_one(t_coder *coder, struct timeval *t)
 {
@@ -78,7 +26,7 @@ static int coder_loop_one(t_coder *coder, struct timeval *t)
 	signal = print_take_dongle(coder, t);
 	if (signal)
 		return (signal);
-	take_dongle(coder, coder->dongles[1], t);
+	signal = take_dongle(coder, coder->dongles[1], t);
 	if (signal)
 		return (signal);
 	signal = print_action(coder, "compiling", t);
@@ -113,6 +61,20 @@ static int coder_loop_two(t_coder *coder, struct timeval *t)
 	return (signal);
 }
 
+static void	final_part(t_c_args *c_args, t_coder *coder)
+{
+	int	signal;
+
+	if (*(coder->poison))
+		return ;
+	signal = safe_mutex_lock(c_args->begin_mtx);
+	if (signal)
+		return ;
+	*c_args->coder_ready += 1;
+	signal = safe_mutex_unlock(c_args->begin_mtx);
+	return ;
+}
+
 void	*coder_rutine(void *args)
 {
 	t_coder			*coder;
@@ -124,7 +86,7 @@ void	*coder_rutine(void *args)
 		return (NULL);
 	coder = ((t_c_args *)args)->coder;
 	t = ((t_c_args *)args)->t;
-	while (coder->comp_times <= coder->cycles && !signal)
+	while (coder->comp_times <= coder->cycles && *(coder->poison) == 0)
 	{
 		signal = coder_loop_one(coder, t);
 		if (signal)
@@ -133,12 +95,6 @@ void	*coder_rutine(void *args)
 		if (signal)
 			break ;
 	}
-	signal = safe_mutex_lock(((t_c_args *)args)->begin_mtx);
-	if (signal)
-		return (NULL);
-	*((t_c_args *)args)->coder_ready += 1;
-	signal = safe_mutex_unlock(((t_c_args *)args)->begin_mtx);
-	if (signal)
-		return (NULL); //HERE SOMETHING ELSE!
+	final_part((t_c_args *)args, coder);
 	return (NULL);
 }

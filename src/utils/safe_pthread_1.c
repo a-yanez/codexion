@@ -13,7 +13,7 @@
 #include "utils/utils.h"
 #include <bits/pthreadtypes.h>
 #include <pthread.h>
-#include <stdio.h>
+//#include <stdio.h>
 
 int	safe_thread_create(pthread_t t_id, void *(*routine)(void *), void *arg)
 {
@@ -22,7 +22,7 @@ int	safe_thread_create(pthread_t t_id, void *(*routine)(void *), void *arg)
 	signal = pthread_create(&t_id, NULL, routine, arg);
 	if (signal)
 	{
-		fprintf(stderr, "Thread creation failed\n");
+		//fprintf(stderr, "Thread creation failed\n");
 		return (signal);
 	}
 	return (signal);
@@ -35,7 +35,7 @@ int	safe_thread_join(pthread_t thread_id)
 	signal = pthread_join(thread_id, NULL);
 	if (signal)
 	{
-		fprintf(stderr, "Thread joining failed\n");
+		//fprintf(stderr, "Thread joining failed\n");
 		return (signal);
 	}
 	return (signal);
@@ -48,7 +48,7 @@ int	safe_mutex_init(pthread_mutex_t mutex)
 	signal = pthread_mutex_init(&mutex, NULL);
 	if (signal)
 	{
-		fprintf(stderr, "Mutex locking failed\n");
+		//fprintf(stderr, "Mutex locking failed\n");
 		return (signal);
 	}
 	return (signal);
@@ -61,7 +61,7 @@ int	safe_cond_init(pthread_cond_t cond)
 	signal = pthread_cond_init(&cond, NULL);
 	if (signal)
 	{
-		fprintf(stderr, "Mutex locking failed\n");
+		//fprintf(stderr, "Mutex locking failed\n");
 		return (signal);
 	}
 	return (signal);

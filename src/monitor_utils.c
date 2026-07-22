@@ -32,17 +32,10 @@ int	burnout(t_args *args, t_coder *coders)
 		if (t_diff(t, coders[i].last_compile_start) >= burnout)
 		{
 			args->burnt_coder = coders[i].n_id;
+			args->poison = 1;
 			return (1);
 		}
 		i++;
 	}
 	return (0);
-}
-
-int	kill_everything(t_coder **coders, t_dongle **dongles)
-{
-	int	i;
-
-	i = 0;
-	return (i);
 }

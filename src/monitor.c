@@ -86,6 +86,7 @@ void	pass_the_ref(t_args *args, t_coder *coders)
 	ref = args->ref_t[0];
 	while (i < args->data[0])
 	{
+		coders[i].poison = &args->poison;
 		coders[i].last_compile_start.tv_sec = ref.tv_sec;
 		coders[i].last_compile_start.tv_usec = ref.tv_usec;
 		i++;
@@ -113,11 +114,12 @@ void	*run_codexion(void *args)
 	gettimeofday(&((t_args *)args)->ref_t[0], NULL);
 	pass_the_ref(((t_args *)args), coders);
 	barrier_wait(&c_args[0]);
-	while (coders_working((t_args *)args))
+	/*
+	while (coders_working((t_args *)args) && ((t_args *)args)->poison == 0)
 	{
 		gettimeofday(&((t_args *)args)->ref_t[1], NULL);
 		if (burnout((t_args *)args, coders))
 			break ;
-	}
+	}*/
 	return (NULL);
 }

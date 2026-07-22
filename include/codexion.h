@@ -41,6 +41,7 @@ typedef struct s_coder
 	int				n_id;
 	int				cycles;
 	int				comp_times;
+	int				*poison;
 	pthread_t		thread_id;
 	suseconds_t		compt_time;
 	suseconds_t		db_time;
@@ -56,6 +57,7 @@ typedef struct s_monitor_args
 {
 	int				*data;
 	char			*sched;
+	int				poison;
 	int				coder_ready;
 	int				burnt_coder;
 	struct timeval	ref_t[2];
@@ -88,12 +90,14 @@ int		coders_working(t_args *args);
 int		burnout(t_args *args, t_coder *coders);
 
 //coder functions
-int		barrier_wait(t_c_args *c_args);
 void	*coder_rutine(void *args);
 
 //coder utils
+int		barrier_wait(t_c_args *c_args);
 int		print_take_dongle(t_coder *coder, volatile struct timeval *t);
 int		print_action(t_coder *coder, char *action, volatile struct timeval *t);
+int		take_dongle(t_coder *coder, t_dongle *dongle, volatile struct timeval *t);
+int		release_dongle(t_dongle *dongle);
 
 //dongle functions
 void	edf(t_dongle *dongle);

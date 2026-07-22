@@ -29,6 +29,7 @@ t_args	*argumenting(char **argv, int **data)
 	}
 	args->data = *data;
 	args->coder_ready = 0;
+	args->poison = 0;
 	return (args);
 }
 
@@ -56,6 +57,5 @@ int	main(int argc, char **argv)
 		if (i)
 			fprintf(stderr, "Monitor thread could not be joined.\n");
 	}
-	free(args);
 	return (i);
 }
