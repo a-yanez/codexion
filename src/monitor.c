@@ -106,20 +106,19 @@ void	*run_codexion(void *args)
 	if (!c_args)
 		return (NULL);
 	i = 0;
+	gettimeofday(&((t_args *)args)->ref_t[0], NULL);
 	while (i < ((t_args *)args)->data[0])
 	{
 		pthread_create(&coders[i].thread_id, NULL, coder_rutine, &c_args[i]);
 		i++;
 	}
-	gettimeofday(&((t_args *)args)->ref_t[0], NULL);
 	pass_the_ref(((t_args *)args), coders);
 	barrier_wait(&c_args[0]);
-	/*
 	while (coders_working((t_args *)args) && ((t_args *)args)->poison == 0)
 	{
 		gettimeofday(&((t_args *)args)->ref_t[1], NULL);
 		if (burnout((t_args *)args, coders))
 			break ;
-	}*/
+	}
 	return (NULL);
 }

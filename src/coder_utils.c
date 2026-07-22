@@ -81,14 +81,12 @@ int	take_dongle(t_coder *coder, t_dongle *dongle, volatile struct timeval *t)
 	queue(dongle, coder);
 	while (dongle->on_use || dongle->queue[0]->n_id != coder->n_id)
 	{
-		printf("%d will wait...\n", coder->n_id);
 		signal	= safe_cond_wait(&dongle->cond, &dongle->lock);
 		if (signal)
 			return (signal);
 	}
 	while (t_diff(*t, dongle->last_used) < dongle->cool_down)
 	{
-		printf("%d will wait timely...\n", coder->n_id);
 		signal	= s_tmwt(&dongle->cond, &dongle->lock, &dongle->ts);
 		if (signal)
 			return (signal);

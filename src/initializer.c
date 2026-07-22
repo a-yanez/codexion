@@ -41,7 +41,7 @@ static t_dongle	*dongle_init(int *data)
 	i = 0;
 	while (i < data[0])
 	{
-		dongles[i].cool_down = data[6] * 1000;
+		dongles[i].cool_down = data[6];
 		dongles[i].on_use = 0;
 		dongles[i].queue[0] = NULL;
 		dongles[i].queue[1] = NULL;

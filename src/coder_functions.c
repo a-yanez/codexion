@@ -29,6 +29,9 @@ static int coder_loop_one(t_coder *coder, struct timeval *t)
 	signal = take_dongle(coder, coder->dongles[1], t);
 	if (signal)
 		return (signal);
+	signal = print_take_dongle(coder, t);
+	if (signal)
+		return (signal);
 	signal = print_action(coder, "compiling", t);
 	if (signal)
 		return (signal);
@@ -86,7 +89,7 @@ void	*coder_rutine(void *args)
 		return (NULL);
 	coder = ((t_c_args *)args)->coder;
 	t = ((t_c_args *)args)->t;
-	while (coder->comp_times <= coder->cycles && *(coder->poison) == 0)
+	while (coder->comp_times < coder->cycles && *(coder->poison) == 0)
 	{
 		signal = coder_loop_one(coder, t);
 		if (signal)
