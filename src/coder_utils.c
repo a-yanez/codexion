@@ -13,6 +13,7 @@
 #include "codexion.h"
 #include "utils/utils.h"
 #include <bits/types/struct_timeval.h>
+#include <unistd.h>
 #include <stdio.h>
 
 int	barrier_wait(t_c_args *c_args)
@@ -57,8 +58,13 @@ int	print_action(t_coder *coder, char *action, volatile struct timeval *t)
 
 int	take_dongle(t_coder *coder, t_dongle *dongle, volatile struct timeval *t)
 {
-	if (!dongle || *(coder->poison) != 0)
+	if (*(coder->poison) != 0)
 		return (1);
+	while(dongle == NULL)
+	{
+		if (*(coder->poison) != 0)
+			return (1);
+	}
 	if (safe_mutex_lock(&dongle->lock))
 		return (1);
 	queue(dongle, coder);

@@ -87,7 +87,8 @@ void	*run_codexion(void *args);
 
 //monitor utils functions
 int		coders_working(t_args *args);
-int		burnout(t_args *args, t_coder *coders);
+int		burnout(t_args **args, t_coder *coders);
+void	print_burnout(t_args *args);
 
 //coder functions
 void	*coder_rutine(void *args);

@@ -17,7 +17,7 @@
 #include <stdint.h>
 #include <unistd.h>
 
-static intptr_t	coder_loop_one(t_coder *coder, struct timeval *t)
+static int	coder_loop_one(t_coder *coder, struct timeval *t)
 {
 
 	if (take_dongle(coder, coder->dongles[0], t))
@@ -36,7 +36,7 @@ static intptr_t	coder_loop_one(t_coder *coder, struct timeval *t)
 	return (0);
 }
 
-static intptr_t coder_loop_two(t_coder *coder, struct timeval *t)
+static int coder_loop_two(t_coder *coder, struct timeval *t)
 {
 	if (release_dongle(coder->dongles[0]))
 		return (1);
@@ -52,7 +52,7 @@ static intptr_t coder_loop_two(t_coder *coder, struct timeval *t)
 	return (0);
 }
 
-static intptr_t	final_part(t_c_args *c_args, t_coder *coder)
+static int	final_part(t_c_args *c_args, t_coder *coder)
 {
 	if (*(coder->poison))
 		return (1);
