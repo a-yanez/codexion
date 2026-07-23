@@ -77,7 +77,7 @@ typedef struct s_coder_arguments
 }	t_c_args;
 
 // parser functions
-int		parser(char **argv, int **arg_list);
+int		*parser(char **argv);
 
 // initializer functions
 int		init_wrapper(t_coder **coders, t_dongle **dongles, t_args *args);

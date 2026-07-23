@@ -65,28 +65,29 @@ int	just_positives(int *args)
 	return (1);
 }
 
-int	parser(char **argv, int **arg_list)
+int	*parser(char **argv)
 {
 	int	i;
+	int	*arg_list;
 
 	i = 0;
-	*arg_list = (int *)malloc(sizeof(int) * 8);
-	if (*arg_list == NULL)
+	arg_list = (int *)malloc(sizeof(int) * 8);
+	if (arg_list == NULL)
 	{
 		fprintf(stderr, "Error: memory allocation failed during parsing.\n");
-		return (0);
+		return (NULL);
 	}
 	while (++i < 8)
 	{
 		if (just_numbers(argv[i]))
-			(*arg_list)[i - 1] = atoi(argv[i]);
+			(arg_list)[i - 1] = atoi(argv[i]);
 		else
 		{
 			fprintf(stderr, "Argument %s invalid. Not an interger\n", argv[i]);
 			return (0);
 		}
 	}
-	if (just_positives(*arg_list) != 1 || sched_cmp(argv[8], arg_list) != 1)
-		return (0);
-	return (1);
+	if (just_positives(arg_list) != 1 || sched_cmp(argv[8], &arg_list) != 1)
+		return (NULL);
+	return (arg_list);
 }

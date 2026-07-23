@@ -15,11 +15,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-t_args	*argumenting(char **argv, int **data)
+t_args	*argumenting(char **argv)
 {
 	t_args	*args;
+	int		*data;
 
-	if (!parser(argv, data))
+	data = parser(argv);
+	if (!data)
 		return (NULL);
 	args = (t_args *)malloc(sizeof(t_args));
 	if (!args)
@@ -27,7 +29,7 @@ t_args	*argumenting(char **argv, int **data)
 		fprintf(stderr, "Error while allocating memory to begin codexion.\n");
 		return (NULL);
 	}
-	args->data = *data;
+	args->data = data;
 	args->coder_ready = 0;
 	args->poison = 0;
 	return (args);
@@ -36,7 +38,6 @@ t_args	*argumenting(char **argv, int **data)
 int	main(int argc, char **argv)
 {
 	int			i;
-	int			*data;
 	t_args		*args;
 	pthread_t	monitor;
 
@@ -45,7 +46,7 @@ int	main(int argc, char **argv)
 		fprintf(stderr, "Error: invalid number of arguments.\n");
 		return (1);
 	}
-	args = argumenting(argv, &data);
+	args = argumenting(argv);
 	if (!args)
 		return (1);
 	i = pthread_create(&monitor, NULL, run_codexion, args);

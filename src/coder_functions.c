@@ -14,68 +14,52 @@
 #include "utils/utils.h"
 #include <bits/types/struct_timeval.h>
 #include <stdio.h>
+#include <stdint.h>
 #include <unistd.h>
 
-static int coder_loop_one(t_coder *coder, struct timeval *t)
+static intptr_t	coder_loop_one(t_coder *coder, struct timeval *t)
 {
-	int	signal;
 
-	signal = take_dongle(coder, coder->dongles[0], t);
-	if (signal)
-		return (signal);
-	signal = print_take_dongle(coder, t);
-	if (signal)
-		return (signal);
-	signal = take_dongle(coder, coder->dongles[1], t);
-	if (signal)
-		return (signal);
-	signal = print_take_dongle(coder, t);
-	if (signal)
-		return (signal);
-	signal = print_action(coder, "compiling", t);
-	if (signal)
-		return (signal);
-	signal = safe_gettimeofday(&coder->last_compile_start);
-	if (signal)
-		return (signal);
+	if (take_dongle(coder, coder->dongles[0], t))
+		return (1);
+	if (print_take_dongle(coder, t))
+		return (1);
+	if (take_dongle(coder, coder->dongles[1], t))
+		return (1);
+	if (print_take_dongle(coder, t))
+		return (1);
+	if (print_action(coder, "compiling", t))
+		return (1);
+	if (safe_gettimeofday(&coder->last_compile_start))
+		return (1);
 	usleep(coder->compt_time);
-	return (signal);
+	return (0);
 }
 
-static int coder_loop_two(t_coder *coder, struct timeval *t)
+static intptr_t coder_loop_two(t_coder *coder, struct timeval *t)
 {
-	int	signal;
-
-	signal = release_dongle(coder->dongles[0]);
-	if (signal)
-		return (signal);
-	signal = release_dongle(coder->dongles[1]);
-	if (signal)
-		return (signal);
-	signal = print_action(coder, "debugging", t);
-	if (signal)
-		return (signal);
+	if (release_dongle(coder->dongles[0]))
+		return (1);
+	if (release_dongle(coder->dongles[1]))
+		return (1);
+	if (print_action(coder, "debugging", t))
+		return (1);
 	usleep(coder->db_time);
-	signal = print_action(coder, "refactoring", t);
-	if (signal)
-		return (signal);
+	if (print_action(coder, "refactoring", t))
+		return (1);
 	usleep(coder->refac_time);
 	coder->comp_times += 1;
-	return (signal);
+	return (0);
 }
 
-static void	final_part(t_c_args *c_args, t_coder *coder)
+static intptr_t	final_part(t_c_args *c_args, t_coder *coder)
 {
-	int	signal;
-
 	if (*(coder->poison))
-		return ;
-	signal = safe_mutex_lock(c_args->begin_mtx);
-	if (signal)
-		return ;
+		return (1);
+	if (safe_mutex_lock(c_args->begin_mtx))
+		return (1);
 	*c_args->coder_ready += 1;
-	signal = safe_mutex_unlock(c_args->begin_mtx);
-	return ;
+	return (safe_mutex_unlock(c_args->begin_mtx));
 }
 
 void	*coder_rutine(void *args)
@@ -86,17 +70,17 @@ void	*coder_rutine(void *args)
 
 	signal = barrier_wait((t_c_args *)args);
 	if (signal)
-		return (NULL);
+		return ((void *)(intptr_t)signal);
 	coder = ((t_c_args *)args)->coder;
 	t = ((t_c_args *)args)->t;
-	while (coder->comp_times < coder->cycles && *(coder->poison) == 0)
+	while (coder->comp_times < coder->cycles && !(*(coder->poison)))
 	{
 		signal = coder_loop_one(coder, t);
 		if (signal)
-			break ;
+			return ((void *)(intptr_t)signal);
 		signal = coder_loop_two(coder, t);
 		if (signal)
-			break ;
+			return ((void *)(intptr_t)signal);
 	}
 	final_part((t_c_args *)args, coder);
 	return (NULL);

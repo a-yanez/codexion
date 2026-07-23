@@ -75,7 +75,7 @@ long	t_diff(struct timeval tv1, struct timeval tv2)
 
 	diff_s = tv1.tv_sec - tv2.tv_sec;
 	diff_usec = tv1.tv_usec - tv2.tv_usec;
-	if (diff_usec > 0)
+	if (diff_usec < 0)
 	{
 		diff_s -= 1;
 		diff_usec += 1000000;

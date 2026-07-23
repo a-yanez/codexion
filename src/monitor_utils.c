@@ -26,7 +26,7 @@ int	burnout(t_args *args, t_coder *coders)
 
 	i = 0;
 	t = args->ref_t[1];
-	burnout = args->data[1] * 1000;
+	burnout = args->data[1];
 	while (i < args->data[0])
 	{
 		if (t_diff(t, coders[i].last_compile_start) >= burnout)
