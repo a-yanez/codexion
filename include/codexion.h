@@ -97,8 +97,8 @@ void	*coder_rutine(void *args);
 int		barrier_wait(t_c_args *c_args);
 int		print_take_dongle(t_coder *coder, volatile struct timeval *t);
 int		print_action(t_coder *coder, char *action, volatile struct timeval *t);
-int		take_dongle(t_coder *coder, t_dongle *dongle, volatile struct timeval *t);
-int		release_dongle(t_dongle *dongle);
+int		take_dongle(t_coder *codr, t_dongle *dongl, volatile struct timeval *t);
+int		release_dongle(t_dongle *dongle, t_coder *coder);
 
 //dongle functions
 void	edf(t_dongle *dongle);

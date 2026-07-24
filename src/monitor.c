@@ -114,11 +114,11 @@ void	*run_codexion(void *args)
 	}
 	pass_the_ref(((t_args *)args), coders);
 	barrier_wait(&c_args[0]);
-	while (coders_working((t_args *)args) && ((t_args *)args)->poison == 0)
+	while (coders_working((t_args *)args))
 	{
 		gettimeofday(&(((t_args *)args)->ref_t[1]), NULL);
 		if (burnout((t_args **)&args, coders))
-			break;
+			break ;
 	}
 	if (((t_args *)args)->burnt_coder)
 		print_burnout((t_args *)args);

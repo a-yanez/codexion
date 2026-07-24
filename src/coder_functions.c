@@ -19,7 +19,6 @@
 
 static int	coder_loop_one(t_coder *coder, struct timeval *t)
 {
-
 	if (take_dongle(coder, coder->dongles[0], t))
 		return (1);
 	if (print_take_dongle(coder, t))
@@ -36,11 +35,11 @@ static int	coder_loop_one(t_coder *coder, struct timeval *t)
 	return (0);
 }
 
-static int coder_loop_two(t_coder *coder, struct timeval *t)
+static int	coder_loop_two(t_coder *coder, struct timeval *t)
 {
-	if (release_dongle(coder->dongles[0]))
+	if (release_dongle(coder->dongles[0], coder))
 		return (1);
-	if (release_dongle(coder->dongles[1]))
+	if (release_dongle(coder->dongles[1], coder))
 		return (1);
 	if (print_action(coder, "debugging", t))
 		return (1);
@@ -66,7 +65,7 @@ void	*coder_rutine(void *args)
 {
 	t_coder			*coder;
 	struct timeval	*t;
-	int 			signal;
+	int				signal;
 
 	signal = barrier_wait((t_c_args *)args);
 	if (signal)

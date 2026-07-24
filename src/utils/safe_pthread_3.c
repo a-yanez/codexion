@@ -15,7 +15,7 @@
 #include <bits/pthreadtypes.h>
 #include <pthread.h>
 #include <asm-generic/errno.h>
-//#include <stdio.h>
+#include <stdio.h>
 
 int	safe_cond_wait(pthread_cond_t *cond, pthread_mutex_t *mutex)
 {
@@ -24,7 +24,7 @@ int	safe_cond_wait(pthread_cond_t *cond, pthread_mutex_t *mutex)
 	signal = pthread_cond_wait(cond, mutex);
 	if (signal)
 	{
-		//fprintf(stderr, "Thread conditional wait failed\n");
+		fprintf(stderr, "Thread conditional wait failed\n");
 		return (signal);
 	}
 	return (signal);
@@ -37,7 +37,7 @@ int	s_tmwt(pthread_cond_t *c, pthread_mutex_t *m, const struct timespec *t)
 	signal = pthread_cond_timedwait(c, m, t);
 	if (signal != 0 && signal != ETIMEDOUT)
 	{
-		//fprintf(stderr, "Thread timed wait failed. Code: %d\n", signal);
+		fprintf(stderr, "Thread timed wait failed. Code: %d\n", signal);
 		return (signal);
 	}
 	return (0);
@@ -50,7 +50,7 @@ int	safe_cond_signal(pthread_cond_t *cond)
 	signal = pthread_cond_signal(cond);
 	if (signal)
 	{
-		//fprintf(stderr, "Conditional signaling failed\n");
+		fprintf(stderr, "Conditional signaling failed\n");
 		return (signal);
 	}
 	return (signal);
@@ -63,7 +63,7 @@ int	safe_cond_broadcast(pthread_cond_t *cond)
 	signal = pthread_cond_broadcast(cond);
 	if (signal)
 	{
-		//fprintf(stderr, "Conditional broadcasting failed\n");
+		fprintf(stderr, "Conditional broadcasting failed\n");
 		return (signal);
 	}
 	return (signal);
