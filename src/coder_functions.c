@@ -19,11 +19,11 @@
 
 static int	coder_loop_one(t_coder *coder, struct timeval *t)
 {
-	if (take_dongle(coder, coder->dongles[0], t))
+	if (take_dng(coder, coder->dongles[0], t))
 		return (1);
 	if (print_take_dongle(coder, t))
 		return (1);
-	if (take_dongle(coder, coder->dongles[1], t))
+	if (take_dng(coder, coder->dongles[1], t))
 		return (1);
 	if (print_take_dongle(coder, t))
 		return (1);
@@ -61,17 +61,19 @@ static int	final_part(t_c_args *c_args, t_coder *coder)
 	return (safe_mutex_unlock(c_args->begin_mtx));
 }
 
-void	*coder_rutine(void *args)
+void	*coder_routine(void *args)
 {
 	t_coder			*coder;
+	t_c_args		*ar;
 	struct timeval	*t;
 	int				signal;
 
-	signal = barrier_wait((t_c_args *)args);
+	ar = (t_c_args *)args;
+	signal = wait(ar->begin_mtx, ar->begin_cnd, ar->coder_ready, ar->coder_num);
 	if (signal)
 		return ((void *)(intptr_t)signal);
-	coder = ((t_c_args *)args)->coder;
-	t = ((t_c_args *)args)->t;
+	coder = ar->coder;
+	t = ar->t;
 	while (coder->comp_times < coder->cycles && !(*(coder->poison)))
 	{
 		signal = coder_loop_one(coder, t);

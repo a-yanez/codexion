@@ -15,11 +15,11 @@
 #include <pthread.h>
 #include <stdio.h>
 
-int	safe_thread_create(pthread_t t_id, void *(*routine)(void *), void *arg)
+int	sf_thread_create(pthread_t *t_id, void *(*routine)(void *), void *arg)
 {
 	int	signal;
 
-	signal = pthread_create(&t_id, NULL, routine, arg);
+	signal = pthread_create(t_id, NULL, routine, arg);
 	if (signal)
 	{
 		fprintf(stderr, "Thread creation failed\n");

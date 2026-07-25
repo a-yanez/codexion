@@ -15,7 +15,7 @@
 #include <string.h>
 #include "utils/utils.h"
 
-int	sched_cmp(char *sched, int **arg_list)
+static int	sched_cmp(char *sched, int **arg_list)
 {
 	int	ok;
 
@@ -35,7 +35,7 @@ int	sched_cmp(char *sched, int **arg_list)
 	return (0);
 }
 
-int	just_numbers(char *str)
+static int	just_numbers(char *str)
 {
 	int	i;
 
@@ -49,7 +49,7 @@ int	just_numbers(char *str)
 	return (1);
 }
 
-int	just_positives(int *args)
+static int	just_positives(int *args)
 {
 	int	i;
 

@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   initializer.c                                      :+:      :+:    :+:   */
+/*   dongle_n_coder_creation.c                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: ayanez-o <ayanez-o@student.42barcelon      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/06 12:48:51 by ayanez-o          #+#    #+#             */
-/*   Updated: 2026/07/06 12:48:53 by ayanez-o         ###   ########.fr       */
+/*   Updated: 2026/07/25 02:06:14 by ayanez-o         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,11 +30,13 @@ parameters:
 7. dongle cooldown - idx 6
  */
 
-static t_dongle	*dongle_init(int *data)
+static t_dongle	*dongle_init(t_args *args)
 {
 	struct s_dongle	*dongles;
+	int				*data;
 	int				i;
 
+	data = args->data;
 	dongles = (t_dongle *)malloc(sizeof(t_dongle) * data[0]);
 	if (!dongles)
 		return (NULL);
@@ -51,11 +53,29 @@ static t_dongle	*dongle_init(int *data)
 	return (dongles);
 }
 
-static t_coder	*coder_init(int *data)
+static void	assign_dongles(t_coder *coder, t_dongle *dongles, int i, int num)
 {
-	struct s_coder	*coders;
-	int				i;
+	int			k;
 
+	coder->dongles[0] = &(dongles[i]);
+	k = (i + 1) % num;
+	if (&(dongles[i]) == &(dongles[k]))
+		coder->dongles[1] = NULL;
+	else
+		coder->dongles[1] = &(dongles[k]);
+	if (i % 2 == 0)
+		ft_pswap((void **)&coder->dongles[0], (void **)&coder->dongles[1]);
+}
+
+static t_coder	*coder_init(t_args *args)
+{
+	t_coder		*coders;
+	t_dongle	*dongles;
+	int			*data;
+	int			i;
+
+	data = args->data;
+	dongles = args->dongles;
 	coders = (t_coder *)malloc(sizeof(t_coder) * data[0]);
 	if (!coders)
 		return (NULL);
@@ -67,44 +87,51 @@ static t_coder	*coder_init(int *data)
 		coders[i].db_time = data[3] * 1000;
 		coders[i].refac_time = data[4] * 1000;
 		coders[i].cycles = data[5];
+		coders[i].printer = &args->printer;
+		coders[i].ref = &args->ref_t[0];
+		coders[i].poison = &args->poison;
+		assign_dongles(&(coders[i]), dongles, i, data[0]);
 		i++;
 	}
 	return (coders);
 }
 
-static void	assign_dongles(t_coder *coder, t_dongle **dongles, int i, int num)
+int	dongle_n_coder_creator(t_args *args)
 {
-	int	k;
+	t_coder			*coders;
+	t_dongle		*dongles;
 
-	coder->dongles[0] = &((*dongles)[i]);
-	k = (i + 1) % num;
-	if (&((*dongles)[i]) == &((*dongles)[k]))
-		coder->dongles[1] = NULL;
-	else
-		coder->dongles[1] = &((*dongles)[k]);
-	if (i % 2 == 0)
-		ft_pswap((void **)&coder->dongles[0], (void **)&coder->dongles[1]);
+	dongles = dongle_init(args);
+	if (!dongles)
+		return (1);
+	args->dongles = dongles;
+	coders = coder_init(args);
+	if (!coders)
+		return (1);
+	args->coders = coders;
+	return (0);
 }
 
-int	init_wrapper(t_coder **coders, t_dongle **dongles, t_args *args)
+t_c_args	*create_c_args(t_args *args)
 {
-	int				i;
+	int			i;
+	t_coder		*coders;
+	t_c_args	*c_args;
 
-	*coders = coder_init(((t_args *)args)->data);
-	if (!(*coders))
-		return (0);
-	*dongles = dongle_init(((t_args *)args)->data);
-	if (!(*dongles))
-	{
-		free_coders(coders, ((t_args *)args)->data[0] - 1);
-		return (0);
-	}
+	coders = args->coders;
+	c_args = (t_c_args *)malloc(sizeof(t_c_args) * args->data[0]);
+	if (!c_args)
+		return (NULL);
 	i = 0;
-	while (i < ((t_args *)args)->data[0])
+	while (i < args->data[0])
 	{
-		(*coders)[i].printer = &((t_args *)args)->printer;
-		assign_dongles(&((*coders)[i]), dongles, i, ((t_args *)args)->data[0]);
+		c_args[i].coder = &coders[i];
+		c_args[i].t = &args->ref_t[1];
+		c_args[i].coder_num = &args->data[0];
+		c_args[i].coder_ready = &args->coder_ready;
+		c_args[i].begin_mtx = &args->begin_mtx;
+		c_args[i].begin_cnd = &args->begin_cnd;
 		i++;
 	}
-	return (1);
+	return (c_args);
 }

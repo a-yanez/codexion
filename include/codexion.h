@@ -20,8 +20,9 @@
 # include <time.h>
 
 // Coders and dongles structure
-typedef struct s_dongle	t_dongle;
-typedef struct s_coder	t_coder;
+typedef struct s_dongle				t_dongle;
+typedef struct s_coder				t_coder;
+typedef struct s_coder_arguments	t_c_args;
 
 typedef struct s_dongle
 {
@@ -53,14 +54,19 @@ typedef struct s_coder
 }	t_coder;
 
 //Args structure
-typedef struct s_monitor_args
+typedef struct s_general_args
 {
 	int				*data;
-	char			*sched;
 	int				poison;
 	int				coder_ready;
 	int				burnt_coder;
+	int				resources;
+	int				mtx_init;
+	int				cnd_init;
 	struct timeval	ref_t[2];
+	t_dongle		*dongles;
+	t_coder			*coders;
+	t_c_args		*c_args;
 	pthread_mutex_t	begin_mtx;
 	pthread_cond_t	begin_cnd;
 	pthread_mutex_t	printer;
@@ -76,39 +82,46 @@ typedef struct s_coder_arguments
 	pthread_cond_t	*begin_cnd;
 }	t_c_args;
 
+// main functions
+t_args		*argumenting(void);
+
 // parser functions
-int		*parser(char **argv);
+int			*parser(char **argv);
 
-// initializer functions
-int		init_wrapper(t_coder **coders, t_dongle **dongles, t_args *args);
+//submain functions
+int			adding_parsed_data(char **argv, t_args *args);
+int			set_the_table(char **argv, t_args *args);
+void		pass_the_ref(t_args *args);
 
-//monitor functions
-void	*run_codexion(void *args);
-
-//monitor utils functions
-int		coders_working(t_args *args);
-int		burnout(t_args **args, t_coder *coders);
-void	print_burnout(t_args *args);
-
-//coder functions
-void	*coder_rutine(void *args);
-
-//coder utils
-int		barrier_wait(t_c_args *c_args);
-int		print_take_dongle(t_coder *coder, volatile struct timeval *t);
-int		print_action(t_coder *coder, char *action, volatile struct timeval *t);
-int		take_dongle(t_coder *codr, t_dongle *dongl, volatile struct timeval *t);
-int		release_dongle(t_dongle *dongle, t_coder *coder);
-
-//dongle functions
-void	edf(t_dongle *dongle);
-void	queue(t_dongle *dongle, t_coder *coder);
-void	pop(t_dongle *dongle);
+// dongle and coder creation functions
+int			dongle_n_coder_creator(t_args *args);
+t_c_args	*create_c_args(t_args *args);
 
 //conds and mutex
-int		destroy_conds(t_args *args, t_dongle *dongles, int i);
-int		init_cond(t_args *args, t_dongle *dongles);
-int		destroy_mutex(t_args *args, t_dongle *dongles, int i);
-int		init_mutex(t_args *args, t_dongle *dongles);
+int			destroy_conds(t_args *args);
+int			init_cond(t_args *args);
+int			destroy_mutex(t_args *args);
+int			init_mutex(t_args *args);
+
+//monitor functions
+void		*monitor_routine(void *args);
+
+//coder functions
+void		*coder_routine(void *args);
+
+//coder utils
+int			wait(pthread_mutex_t *m, pthread_cond_t *c, int *ready, int *num);
+int			print_take_dongle(t_coder *coder, volatile struct timeval *t);
+int			print_action(t_coder *cod, char *act, volatile struct timeval *t);
+int			take_dng(t_coder *cod, t_dongle *dng, volatile struct timeval *t);
+int			release_dongle(t_dongle *dongle, t_coder *coder);
+
+//dongle functions
+void		edf(t_dongle *dongle);
+void		queue(t_dongle *dongle, t_coder *coder);
+void		pop(t_dongle *dongle);
+
+// cleaning
+int			cleaning(t_args *args);
 
 #endif

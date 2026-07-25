@@ -31,96 +31,63 @@ parameters:
 7. dongle cooldown - idx 6
  */
 
-static t_c_args	*create_c_args(t_args *args, t_coder *coders, t_dongle *dongles)
+static int	coders_working(t_args *args)
 {
-	int			i;
-	t_c_args	*c_args;
-
-	c_args = (t_c_args *)malloc(sizeof(t_c_args) * args->data[0]);
-	if (!c_args)
-	{
-		destroy_mutex(args, dongles, args->data[0] - 1);
-		destroy_conds(args, dongles, args->data[0] - 1);
-		free_both(&coders, &dongles, args->data[0] - 1);
-		return (NULL);
-	}
-	i = 0;
-	while (i < args->data[0])
-	{
-		coders[i].ref = &args->ref_t[0];
-		c_args[i].coder = &coders[i];
-		c_args[i].t = &args->ref_t[1];
-		c_args[i].coder_num = &args->data[0];
-		c_args[i].coder_ready = &args->coder_ready;
-		c_args[i].begin_mtx = &args->begin_mtx;
-		c_args[i].begin_cnd = &args->begin_cnd;
-		i++;
-	}
-	return (c_args);
+	return (args->coder_ready >= 0 && args->coder_ready < args->data[0]);
 }
 
-static int	set_the_table(t_coder **coders, t_dongle **dongles, t_args *args)
-{
-	if (!init_wrapper(coders, dongles, args))
-		return (0);
-	if (!init_cond(args, *dongles))
-	{
-		free_both(coders, dongles, args->data[0] - 1);
-		return (0);
-	}
-	if (!init_mutex(args, *dongles))
-	{
-		destroy_conds(args, *dongles, args->data[0] - 1);
-		free_both(coders, dongles, args->data[0] - 1);
-		return (0);
-	}
-	return (1);
-}
-
-void	pass_the_ref(t_args *args, t_coder *coders)
+static int	burnout(t_args **args, t_coder *coders)
 {
 	int				i;
+	suseconds_t		burnout;
+	struct timeval	t;
+
+	i = 0;
+	t = (*args)->ref_t[1];
+	burnout = (*args)->data[1];
+	while (i < (*args)->data[0])
+	{
+		if (t_diff(t, coders[i].last_compile_start) >= burnout)
+		{
+			(*args)->burnt_coder = coders[i].n_id;
+			(*args)->poison = 1;
+			return (1);
+		}
+		i++;
+	}
+	return (0);
+}
+
+static void	print_burnout(t_args *args)
+{
 	struct timeval	ref;
+	struct timeval	t;
+	int				coder_id;
+	long			b_time;
 
-	i = 0;
 	ref = args->ref_t[0];
-	while (i < args->data[0])
-	{
-		coders[i].poison = &args->poison;
-		coders[i].last_compile_start.tv_sec = ref.tv_sec;
-		coders[i].last_compile_start.tv_usec = ref.tv_usec;
-		i++;
-	}
+	t = args->ref_t[1];
+	coder_id = args->burnt_coder;
+	b_time = t_diff(t, ref);
+	printf("%ld %d burned out\n", b_time, coder_id);
 }
 
-void	*run_codexion(void *args)
+void	*monitor_routine(void *args)
 {
-	int				i;
-	t_coder			*coders;
-	t_dongle		*dongles;
-	t_c_args		*c_args;
+	t_args		*ar;
+	t_coder		*coders;
 
-	if (!set_the_table(&coders, &dongles, (t_args *)args))
+	ar = (t_args *)args;
+	coders = ar->coders;
+	if (wait(&ar->begin_mtx, &ar->begin_cnd, &ar->coder_ready, &ar->data[0]))
 		return (NULL);
-	c_args = create_c_args((t_args *)args, coders, dongles);
-	if (!c_args)
-		return (NULL);
-	i = 0;
-	gettimeofday(&((t_args *)args)->ref_t[0], NULL);
-	while (i < ((t_args *)args)->data[0])
+	while (coders_working(ar))
 	{
-		pthread_create(&coders[i].thread_id, NULL, coder_rutine, &c_args[i]);
-		i++;
-	}
-	pass_the_ref(((t_args *)args), coders);
-	barrier_wait(&c_args[0]);
-	while (coders_working((t_args *)args))
-	{
-		gettimeofday(&(((t_args *)args)->ref_t[1]), NULL);
-		if (burnout((t_args **)&args, coders))
+		gettimeofday(&(ar->ref_t[1]), NULL);
+		if (burnout(&ar, coders))
 			break ;
 	}
-	if (((t_args *)args)->burnt_coder)
-		print_burnout((t_args *)args);
+	if (ar->burnt_coder)
+		print_burnout(ar);
 	return (NULL);
 }

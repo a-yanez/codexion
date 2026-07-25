@@ -33,7 +33,7 @@ int		set_timeout(struct timespec *ts, int timeout_ms);
 long	t_diff(struct timeval tv1, struct timeval tv2);
 
 //safe thread functions
-int		safe_thread_create(pthread_t t_id, void *(*routine)(void *), void *arg);
+int		sf_thread_create(pthread_t *t_id, void *(*routine)(void *), void *arg);
 int		safe_thread_join(pthread_t thread_id);
 int		safe_mutex_init(pthread_mutex_t mutex);
 int		safe_cond_init(pthread_cond_t cond);
