@@ -23,6 +23,7 @@
 typedef struct s_dongle				t_dongle;
 typedef struct s_coder				t_coder;
 typedef struct s_coder_arguments	t_c_args;
+typedef struct timeval				t_tmval;
 
 typedef struct s_dongle
 {
@@ -60,7 +61,6 @@ typedef struct s_general_args
 	int				poison;
 	int				coder_ready;
 	int				burnt_coder;
-	int				resources;
 	int				mtx_init;
 	int				cnd_init;
 	struct timeval	ref_t[2];
@@ -105,16 +105,16 @@ int			init_mutex(t_args *args);
 
 //monitor functions
 void		*monitor_routine(void *args);
+int			wait(pthread_mutex_t *m, pthread_cond_t *c, int *ready, int *num);
 
 //coder functions
 void		*coder_routine(void *args);
 
 //coder utils
-int			wait(pthread_mutex_t *m, pthread_cond_t *c, int *ready, int *num);
-int			print_take_dongle(t_coder *coder, volatile struct timeval *t);
-int			print_action(t_coder *cod, char *act, volatile struct timeval *t);
-int			take_dng(t_coder *cod, t_dongle *dng, volatile struct timeval *t);
-int			release_dongle(t_dongle *dongle, t_coder *coder);
+int			print_take(t_coder *cod, t_c_args *ar, volatile t_tmval *t);
+int			act(t_coder *c, char *ac, t_c_args *ar, volatile t_tmval *t);
+int			take(t_coder *c, t_dongle *d, t_c_args *a, volatile t_tmval *t);
+int			release(t_dongle *dongle, t_c_args *ar, t_coder *coder);
 
 //dongle functions
 void		edf(t_dongle *dongle);

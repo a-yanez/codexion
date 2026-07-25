@@ -13,7 +13,6 @@
 #include "codexion.h"
 #include <stdio.h>
 #include <stdint.h>
-#include <stdlib.h>
 
 int	adding_parsed_data(char **argv, t_args *args)
 {

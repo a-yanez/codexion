@@ -12,84 +12,79 @@
 
 #include "codexion.h"
 #include "utils/utils.h"
+#include <bits/pthreadtypes.h>
 #include <bits/types/struct_timeval.h>
 #include <unistd.h>
 #include <stdio.h>
 
-int	wait(pthread_mutex_t *m, pthread_cond_t *c, int *ready, int *num)
+int	check_poison(pthread_mutex_t *b_mtx, int *poison)
 {
-	if (safe_mutex_lock(m))
-		return (1);
-	*ready += 1;
-	if (*ready < *num + 1)
-	{
-		printf("waiting...\n");
-		if (safe_cond_wait(c, m))
-			return (safe_mutex_unlock(m));
-	}
-	else
-	{
-		*ready = 0;
-		if (safe_cond_broadcast(c))
-			return (safe_mutex_unlock(m));
-	}
-	return (safe_mutex_unlock(m));
+	int	signal;
+
+	signal = 0;
+	if (safe_mutex_lock(b_mtx))
+		return (-1);
+	if (*poison == 1)
+		signal = 1;
+	if (safe_mutex_unlock(b_mtx))
+		return (-1);
+	return (signal);
 }
 
-int	print_take_dongle(t_coder *coder, volatile struct timeval *t)
+int	print_take(t_coder *coder, t_c_args *car, volatile t_tmval *t)
 {
-	if (*(coder->poison) != 0)
+	if (check_poison(car->begin_mtx, coder->poison) != 0)
 		return (1);
 	if (safe_mutex_lock(coder->printer))
 		return (1);
-	if (*(coder->poison) != 0)
+	if (check_poison(car->begin_mtx, coder->poison) != 0)
 		return (safe_mutex_unlock(coder->printer));
 	printf("%ld %d has taken a dongle\n", t_diff(*t, *coder->ref), coder->n_id);
 	return (safe_mutex_unlock(coder->printer));
 }
 
-int	print_action(t_coder *cod, char *act, volatile struct timeval *t)
+int	act(t_coder *c, char *ac, t_c_args *ar, volatile t_tmval *t)
 {
-	if (*(cod->poison) != 0)
+	if (check_poison(ar->begin_mtx, c->poison) != 0)
 		return (1);
-	if (safe_mutex_lock(cod->printer))
+	if (safe_mutex_lock(c->printer))
 		return (1);
-	if (*(cod->poison) != 0)
-		return (safe_mutex_unlock(cod->printer));
-	printf("%ld %d is %s\n", t_diff(*t, *cod->ref), cod->n_id, act);
-	return (safe_mutex_unlock(cod->printer));
+	if (check_poison(ar->begin_mtx, c->poison) != 0)
+		return (safe_mutex_unlock(c->printer));
+	printf("%ld %d is %s\n", t_diff(*t, *c->ref), c->n_id, ac);
+	return (safe_mutex_unlock(c->printer));
 }
 
-int	take_dng(t_coder *cod, t_dongle *dng, volatile struct timeval *t)
+int	take(t_coder *c, t_dongle *d, t_c_args *a, volatile t_tmval *t)
 {
-	if (*(cod->poison) != 0)
+	if (check_poison(a->begin_mtx, c->poison) != 0)
 		return (1);
-	while (dng == NULL)
+	while (d == NULL)
 	{
-		if (*(cod->poison) != 0)
+		if (*(c->poison) != 0)
 			return (1);
 	}
-	if (safe_mutex_lock(&dng->lock))
+	if (safe_mutex_lock(&d->lock))
 		return (1);
-	queue(dng, cod);
-	while (dng->on_use || dng->queue[0]->n_id != cod->n_id)
+	queue(d, c);
+	while (d->on_use || d->queue[0]->n_id != c->n_id)
 	{
-		if (safe_cond_wait(&dng->cond, &dng->lock))
-			return (safe_mutex_unlock(&dng->lock));
+		if (safe_cond_wait(&d->cond, &d->lock))
+			return (safe_mutex_unlock(&d->lock));
 	}
-	while (t_diff(*t, dng->last_used) < dng->cool_down)
+	while (t_diff(*t, d->last_used) < d->cool_down)
 	{
-		if (s_tmwt(&dng->cond, &dng->lock, &dng->ts))
-			return (safe_mutex_unlock(&dng->lock));
+		if (s_tmwt(&d->cond, &d->lock, &d->ts))
+			return (safe_mutex_unlock(&d->lock));
 	}
-	dng->on_use = 1;
-	pop(dng);
-	return (safe_mutex_unlock(&dng->lock));
+	d->on_use = 1;
+	pop(d);
+	return (safe_mutex_unlock(&d->lock));
 }
 
-int	release_dongle(t_dongle *dongle, t_coder *coder)
+int	release(t_dongle *dongle, t_c_args *ar, t_coder *coder)
 {
-	if (*(coder->poison) != 0)
+	if (check_poison(ar->begin_mtx, coder->poison) != 0)
 		return (1);
 	if (safe_mutex_lock(&dongle->lock))
 		return (1);
