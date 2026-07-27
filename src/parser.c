@@ -42,7 +42,7 @@ static int	just_numbers(char *str)
 	i = 0;
 	while (str[i])
 	{
-		if (!ft_isdigit(str[0]))
+		if (!ft_isdigit(str[i]))
 			return (0);
 		i++;
 	}
@@ -54,40 +54,61 @@ static int	just_positives(int *args)
 	int	i;
 
 	i = 0;
-	while (++i < 8)
+	while (i < 7)
 	{
 		if (args[i] < 0)
 		{
 			fprintf(stderr, "Argument %d is not a valid integer\n", args[i]);
 			return (0);
 		}
+		i++;
+	}
+	return (1);
+}
+
+int from_argv_to_data(char **argv, int **data)
+{
+	int	i;
+
+	i = 1;
+	while (i < 8)
+	{
+		if (just_numbers(argv[i]))
+			(*data)[i - 1] = atoi(argv[i]);
+		else
+		{
+			fprintf(stderr, "Argument %s invalid. Not an interger\n", argv[i]);
+			return (0);
+		}
+		i++;
 	}
 	return (1);
 }
 
 int	*parser(char **argv)
 {
-	int	i;
-	int	*arg_list;
+	int	*data;
 
-	i = 0;
-	arg_list = (int *)malloc(sizeof(int) * 8);
-	if (arg_list == NULL)
+	data = (int *)malloc(sizeof(int) * 8);
+	if (data == NULL)
 	{
 		fprintf(stderr, "Error: memory allocation failed during parsing.\n");
 		return (NULL);
 	}
-	while (++i < 8)
+	if (!from_argv_to_data(argv, &data))
 	{
-		if (just_numbers(argv[i]))
-			(arg_list)[i - 1] = atoi(argv[i]);
-		else
-		{
-			fprintf(stderr, "Argument %s invalid. Not an interger\n", argv[i]);
-			return (0);
-		}
-	}
-	if (just_positives(arg_list) != 1 || sched_cmp(argv[8], &arg_list) != 1)
+		free(data);
 		return (NULL);
-	return (arg_list);
+	}
+	if (!just_positives(data))
+	{
+		free(data);
+		return (NULL);
+	}
+	if (!sched_cmp(argv[8], &data))
+	{
+		free(data);
+		return (NULL);
+	}
+	return (data);
 }

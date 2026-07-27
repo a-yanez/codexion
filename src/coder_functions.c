@@ -57,7 +57,7 @@ static int	final_part(t_c_args *c_args, t_coder *coder)
 		return (1);
 	if (safe_mutex_lock(c_args->begin_mtx))
 		return (1);
-	*c_args->coder_ready += 1;
+	*c_args->coder_done += 1;
 	return (safe_mutex_unlock(c_args->begin_mtx));
 }
 

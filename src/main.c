@@ -28,6 +28,7 @@ t_args	*argumenting(void)
 		return (NULL);
 	}
 	args->coder_ready = 0;
+	args->coder_done = 0;
 	args->poison = 0;
 	args->cnd_init = 0;
 	args->mtx_init = 0;
@@ -83,7 +84,7 @@ void	run_codexion(t_args *args)
 		return ;
 	pass_the_ref(args);
 	if (threading_coders(args))
-		return ;
+		return ;	
 	if (sf_thread_create(&monitor, monitor_routine, args))
 		return ;
 	if (safe_thread_join(monitor))

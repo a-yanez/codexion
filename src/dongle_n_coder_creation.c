@@ -129,6 +129,7 @@ t_c_args	*create_c_args(t_args *args)
 		c_args[i].t = &args->ref_t[1];
 		c_args[i].coder_num = &args->data[0];
 		c_args[i].coder_ready = &args->coder_ready;
+		c_args[i].coder_done = &args->coder_done;
 		c_args[i].begin_mtx = &args->begin_mtx;
 		c_args[i].begin_cnd = &args->begin_cnd;
 		i++;

@@ -60,6 +60,7 @@ typedef struct s_general_args
 	int				*data;
 	int				poison;
 	int				coder_ready;
+	int				coder_done;
 	int				burnt_coder;
 	int				mtx_init;
 	int				cnd_init;
@@ -77,6 +78,7 @@ typedef struct s_coder_arguments
 	t_coder			*coder;
 	struct timeval	*t;
 	int				*coder_ready;
+	int				*coder_done;
 	int				*coder_num;
 	pthread_mutex_t	*begin_mtx;
 	pthread_cond_t	*begin_cnd;
