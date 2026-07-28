@@ -36,10 +36,8 @@ int	wait(pthread_mutex_t *m, pthread_cond_t *c, int *ready, int *num)
 	if (safe_mutex_lock(m))
 		return (1);
 	*ready += 1;
-	printf("%d coders or monitor checked in...\n", *ready);
 	if (*ready < (*num + 1))
 	{
-		printf("waiting...\n");
 		while (*ready < (*num + 1))
 		{
 			if (safe_cond_wait(c, m))
@@ -48,7 +46,6 @@ int	wait(pthread_mutex_t *m, pthread_cond_t *c, int *ready, int *num)
 	}
 	else
 	{
-		printf("Everyone is ready!\n");
 		if (safe_cond_broadcast(c))
 			return (safe_mutex_unlock(m));
 	}
