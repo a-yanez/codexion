@@ -41,6 +41,17 @@ int	safe_cond_destroy(pthread_cond_t *cond)
 	return (signal);
 }
 
+int safe_mutex_lock(pthread_mutex_t *m)
+{
+    int err;
+
+    err = pthread_mutex_lock(m);
+    if (err)
+        fprintf(stderr, "pthread_mutex_lock(%p) -> %d\n", (void *)m, err);
+    return err;
+}
+
+/*
 int	safe_mutex_lock(pthread_mutex_t *mutex)
 {
 	int	signal;
@@ -48,11 +59,12 @@ int	safe_mutex_lock(pthread_mutex_t *mutex)
 	signal = pthread_mutex_lock(mutex);
 	if (signal)
 	{
-		fprintf(stderr, "Mutex locking failed\n");
+		fprintf(stderr, "Mutex locking failed. Code: %d\n", signal);
 		return (signal);
 	}
 	return (signal);
 }
+ */
 
 int	safe_mutex_unlock(pthread_mutex_t *mutex)
 {

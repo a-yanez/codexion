@@ -61,7 +61,7 @@ int	take(t_coder *c, t_dongle *d, t_c_args *a, volatile t_tmval *t)
 		return (1);
 	while (d == NULL)
 	{
-		if (*(c->poison) != 0)
+		if (check_poison(a->begin_mtx, c->poison) != 0)
 			return (1);
 	}
 	if (safe_mutex_lock(&d->lock))
@@ -71,11 +71,15 @@ int	take(t_coder *c, t_dongle *d, t_c_args *a, volatile t_tmval *t)
 	{
 		if (safe_cond_wait(&d->cond, &d->lock))
 			return (safe_mutex_unlock(&d->lock));
+		if (check_poison(a->begin_mtx, c->poison))
+	        return (safe_mutex_unlock(&d->lock));
 	}
 	while (t_diff(*t, d->last_used) < d->cool_down)
 	{
 		if (s_tmwt(&d->cond, &d->lock, &d->ts))
 			return (safe_mutex_unlock(&d->lock));
+		if (check_poison(a->begin_mtx, c->poison))
+	        return (safe_mutex_unlock(&d->lock));
 	}
 	d->on_use = 1;
 	pop(d);

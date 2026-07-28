@@ -35,7 +35,7 @@ int	safe_thread_join(pthread_t thread_id)
 	signal = pthread_join(thread_id, NULL);
 	if (signal)
 	{
-		fprintf(stderr, "Thread joining failed\n");
+		fprintf(stderr, "Thread joining failed. Code %d\n", signal);
 		return (signal);
 	}
 	return (signal);
@@ -48,7 +48,7 @@ int	safe_mutex_init(pthread_mutex_t mutex)
 	signal = pthread_mutex_init(&mutex, NULL);
 	if (signal)
 	{
-		fprintf(stderr, "Mutex locking failed\n");
+		fprintf(stderr, "Mutex locking failed. Code: %d\n", signal);
 		return (signal);
 	}
 	return (signal);

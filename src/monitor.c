@@ -60,24 +60,24 @@ static int	coders_working(t_args *args)
 	return (args->coder_done >= 0 && args->coder_done < args->data[0]);
 }
 
-static int	burnout(t_args **args, t_coder *coders)
+static int	burnout(t_args *args, t_coder *coders)
 {
 	int				i;
 	suseconds_t		burnout;
 	struct timeval	t;
 
 	i = 0;
-	t = (*args)->ref_t[1];
-	burnout = (*args)->data[1];
-	while (i < (*args)->data[0])
+	t = args->ref_t[1];
+	burnout = args->data[1];
+	while (i < args->data[0])
 	{
 		if (t_diff(t, coders[i].last_compile_start) >= burnout)
 		{
-			(*args)->burnt_coder = coders[i].n_id;
-			if (safe_mutex_lock(&(*args)->begin_mtx))
+			args->burnt_coder = coders[i].n_id;
+			if (safe_mutex_lock(&args->begin_mtx))
 				return (-1);
-			(*args)->poison = 1;
-			if (safe_mutex_unlock(&(*args)->begin_mtx))
+			args->poison = 1;
+			if (safe_mutex_unlock(&args->begin_mtx))
 				return (-1);
 			return (1);
 		}
@@ -92,7 +92,14 @@ static void	print_burnout(t_args *args)
 	struct timeval	t;
 	int				coder_id;
 	long			b_time;
+	int				i;
 
+	i = 0;
+	while (i < args->data[0])
+	{
+		pthread_cond_broadcast(&args->dongles[i].cond);
+		i++;
+	}
 	ref = args->ref_t[0];
 	t = args->ref_t[1];
 	coder_id = args->burnt_coder;
@@ -114,7 +121,7 @@ void	*monitor_routine(void *args)
 	{
 		if (safe_gettimeofday(&(ar->ref_t[1])))
 			return (NULL);
-		signal = burnout(&ar, coders);
+		signal = burnout(ar, coders);
 		if (signal == 1)
 			break ;
 		else if (signal < 0)
