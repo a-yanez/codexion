@@ -29,14 +29,12 @@ static int	coder_loop_one(t_coder *coder, t_c_args *ar)
 		return (1);
 	if (act(coder, "compiling", ar))
 		return (1);
-	if (safe_mutex_unlock(&coder->seal))
+	if (safe_mutex_lock(&coder->seal))
 		return (1);
 	if (safe_gettimeofday(&coder->last_compile_start))
-	{
-		if (!safe_mutex_unlock(&coder->seal))
-			return (1);
+		return (safe_mutex_unlock(&coder->seal, 1));
+	if (safe_mutex_unlock(&coder->seal, 0))
 		return (1);
-	}
 	usleep(coder->compt_time);
 	return (0);
 }
@@ -64,7 +62,9 @@ static int	final_part(t_c_args *c_args, t_coder *coder)
 	if (safe_mutex_lock(c_args->begin_mtx))
 		return (1);
 	*c_args->coder_done += 1;
-	return (safe_mutex_unlock(c_args->begin_mtx));
+	if (safe_mutex_unlock(c_args->begin_mtx, 0))
+		return (1);
+	return (0);
 }
 
 void	*coder_routine(void *args)

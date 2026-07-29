@@ -71,7 +71,7 @@ static int	init_coders_mutex(t_args *args)
 		args->cdr_mtx += 1;
 		i++;
 	}
-	return(0);
+	return (0);
 }
 
 int	init_mutex(t_args *args)

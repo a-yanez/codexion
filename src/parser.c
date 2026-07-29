@@ -66,7 +66,7 @@ static int	just_positives(int *args)
 	return (1);
 }
 
-int from_argv_to_data(char **argv, int **data)
+int	from_argv_to_data(char **argv, int **data)
 {
 	int	i;
 

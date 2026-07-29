@@ -41,50 +41,30 @@ int	wait(pthread_mutex_t *m, pthread_cond_t *c, int *ready, int *num)
 		while (*ready < (*num + 1))
 		{
 			if (safe_cond_wait(c, m))
-				return (safe_mutex_unlock(m));
+				return (safe_mutex_unlock(m, 1));
 		}
 	}
 	else
 	{
 		if (safe_cond_broadcast(c))
-			return (safe_mutex_unlock(m));
+			return (safe_mutex_unlock(m, 1));
 	}
-	return (safe_mutex_unlock(m));
-}
-
-static int	coders_working(t_args *args)
-{
-	return (args->coder_done >= 0 && args->coder_done < args->data[0]);
-}
-
-static long	calculate_delta(t_coder *coder, t_tmval t)
-{
-	long	t_delta;
-	t_tmval	last_comp;
-
-	if (safe_mutex_lock(&coder->seal))
-		return (-1);
-	last_comp.tv_sec = coder->last_compile_start.tv_sec;
-	last_comp.tv_usec = coder->last_compile_start.tv_usec;
- 	if (safe_mutex_unlock(&coder->seal))
-		return (-1);
-  	t_delta = t_diff(t, last_comp);
-  	return (t_delta);
+	if (safe_mutex_unlock(m, 0))
+		return (1);
+	return (0);
 }
 
 static int	burnout(t_args *args, t_coder *coders)
 {
 	int				i;
 	suseconds_t		burnout;
-	t_tmval			t;
 	long			t_delta;
 
 	i = 0;
-	t = args->ref_t[1];
 	burnout = args->data[1];
 	while (i < args->data[0])
 	{
-		t_delta = calculate_delta(&coders[i], t);
+		t_delta = calculate_delta(&coders[i], args->ref_t[1]);
 		if (t_delta < 0)
 			return (-1);
 		if (t_delta >= burnout)
@@ -93,7 +73,7 @@ static int	burnout(t_args *args, t_coder *coders)
 			if (safe_mutex_lock(&args->begin_mtx))
 				return (-1);
 			args->poison = 1;
-			if (safe_mutex_unlock(&args->begin_mtx))
+			if (safe_mutex_unlock(&args->begin_mtx, 0))
 				return (-1);
 			return (1);
 		}
@@ -117,8 +97,8 @@ static int	print_burnout(t_args *args)
 			if (safe_mutex_lock(&dongles[i].lock))
 				return (-1);
 			if (safe_cond_broadcast(&args->dongles[i].cond))
-				return (safe_mutex_unlock(&dongles[i].lock));
-			if (safe_mutex_unlock(&dongles[i].lock))
+				return (safe_mutex_unlock(&dongles[i].lock, 1));
+			if (safe_mutex_unlock(&dongles[i].lock, 0))
 				return (-1);
 			i++;
 		}

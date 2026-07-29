@@ -26,7 +26,7 @@ int	check_poison(pthread_mutex_t *b_mtx, int *poison)
 		return (-1);
 	if (*poison == 1)
 		signal = 1;
-	if (safe_mutex_unlock(b_mtx))
+	if (safe_mutex_unlock(b_mtx, 0))
 		return (-1);
 	return (signal);
 }
@@ -36,15 +36,13 @@ int	print_take(t_coder *c, t_c_args *ar)
 	if (safe_mutex_lock(c->printer))
 		return (1);
 	if (check_poison(ar->begin_mtx, c->poison) != 0)
-	{
-		if (!safe_mutex_unlock(c->printer))
-			return (1);
-		return (1);
-	}
+		return (safe_mutex_unlock(c->printer, 1));
 	if (safe_gettimeofday(&c->own))
-		return (safe_mutex_unlock(c->printer));
+		return (safe_mutex_unlock(c->printer, 1));
 	printf("%ld %d has taken a dongle\n", t_diff(c->own, c->ref), c->n_id);
-	return (safe_mutex_unlock(c->printer));
+	if (safe_mutex_unlock(c->printer, 0))
+		return (1);
+	return (0);
 }
 
 int	act(t_coder *c, char *ac, t_c_args *ar)
@@ -52,45 +50,13 @@ int	act(t_coder *c, char *ac, t_c_args *ar)
 	if (safe_mutex_lock(c->printer))
 		return (1);
 	if (check_poison(ar->begin_mtx, c->poison) != 0)
-	{
-		if (!safe_mutex_unlock(c->printer))
-			return (1);
-		return (1);
-	}
+		return (safe_mutex_unlock(c->printer, 1));
 	if (safe_gettimeofday(&c->own))
-		return (safe_mutex_unlock(c->printer));
+		return (safe_mutex_unlock(c->printer, 1));
 	printf("%ld %d is %s\n", t_diff(c->own, c->ref), c->n_id, ac);
-	return (safe_mutex_unlock(c->printer));
-}
-
-int	take(t_coder *c, t_dongle *d, t_c_args *a)
-{
-	if (check_poison(a->begin_mtx, c->poison) != 0)
+	if (safe_mutex_unlock(c->printer, 0))
 		return (1);
-	while (d == NULL)
-		return (1);
-	if (safe_mutex_lock(&d->lock))
-		return (1);
-	queue(d, c);
-	while (d->on_use || d->queue[0]->n_id != c->n_id)
-	{
-		if (safe_cond_wait(&d->cond, &d->lock))
-			return (safe_mutex_unlock(&d->lock));
-		if (check_poison(a->begin_mtx, c->poison))
-	        return (safe_mutex_unlock(&d->lock));
-	}
-	if (safe_gettimeofday(&c->own))
-		return (safe_mutex_unlock(&d->lock));
-	while (t_diff(c->own, d->last_used) < d->cool_down)
-	{
-		if (s_tmwt(&d->cond, &d->lock, &d->ts))
-			return (safe_mutex_unlock(&d->lock));
-		if (check_poison(a->begin_mtx, c->poison))
-	        return (safe_mutex_unlock(&d->lock));
-	}
-	d->on_use = 1;
-	pop(d);
-	return (safe_mutex_unlock(&d->lock));
+	return (0);
 }
 
 int	release(t_dongle *dongle, t_c_args *ar, t_coder *coder)
@@ -100,11 +66,13 @@ int	release(t_dongle *dongle, t_c_args *ar, t_coder *coder)
 	if (safe_mutex_lock(&dongle->lock))
 		return (1);
 	if (safe_gettimeofday(&dongle->last_used))
-		return (safe_mutex_unlock(&dongle->lock));
+		return (safe_mutex_unlock(&dongle->lock, 1));
 	if (set_timeout(&dongle->ts, dongle->cool_down))
-		return (safe_mutex_unlock(&dongle->lock));
+		return (safe_mutex_unlock(&dongle->lock, 1));
 	dongle->on_use = 0;
 	if (safe_cond_signal(&dongle->cond))
-		return (safe_mutex_unlock(&dongle->lock));
-	return (safe_mutex_unlock(&dongle->lock));
+		return (safe_mutex_unlock(&dongle->lock, 1));
+	if (safe_mutex_unlock(&dongle->lock, 0))
+		return (1);
+	return (0);
 }
