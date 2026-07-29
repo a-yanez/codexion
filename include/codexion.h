@@ -51,7 +51,9 @@ typedef struct s_coder
 	struct s_dongle	*dongles[2];
 	struct timeval	last_compile_start;
 	struct timeval	*ref;
+	struct timeval	own;
 	pthread_mutex_t	*printer;
+	pthread_mutex_t	seal;
 }	t_coder;
 
 //Args structure
@@ -76,7 +78,6 @@ typedef struct s_general_args
 typedef struct s_coder_arguments
 {
 	t_coder			*coder;
-	struct timeval	*t;
 	int				*coder_ready;
 	int				*coder_done;
 	int				*coder_num;
@@ -113,9 +114,9 @@ int			wait(pthread_mutex_t *m, pthread_cond_t *c, int *ready, int *num);
 void		*coder_routine(void *args);
 
 //coder utils
-int			print_take(t_coder *cod, t_c_args *ar, volatile t_tmval *t);
-int			act(t_coder *c, char *ac, t_c_args *ar, volatile t_tmval *t);
-int			take(t_coder *c, t_dongle *d, t_c_args *a, volatile t_tmval *t);
+int			print_take(t_coder *c, t_c_args *ar);
+int			act(t_coder *c, char *ac, t_c_args *ar);
+int			take(t_coder *c, t_dongle *d, t_c_args *a);
 int			release(t_dongle *dongle, t_c_args *ar, t_coder *coder);
 
 //dongle functions

@@ -31,39 +31,44 @@ int	check_poison(pthread_mutex_t *b_mtx, int *poison)
 	return (signal);
 }
 
-int	print_take(t_coder *coder, t_c_args *car, volatile t_tmval *t)
+int	print_take(t_coder *c, t_c_args *ar)
 {
-	if (check_poison(car->begin_mtx, coder->poison) != 0)
-		return (1);
-	if (safe_mutex_lock(coder->printer))
-		return (1);
-	if (check_poison(car->begin_mtx, coder->poison) != 0)
-		return (safe_mutex_unlock(coder->printer));
-	printf("%ld %d has taken a dongle\n", t_diff(*t, *coder->ref), coder->n_id);
-	return (safe_mutex_unlock(coder->printer));
-}
-
-int	act(t_coder *c, char *ac, t_c_args *ar, volatile t_tmval *t)
-{
-	if (check_poison(ar->begin_mtx, c->poison) != 0)
-		return (1);
 	if (safe_mutex_lock(c->printer))
 		return (1);
 	if (check_poison(ar->begin_mtx, c->poison) != 0)
+	{
+		if (!safe_mutex_unlock(c->printer))
+			return (1);
+		return (1);
+	}
+	if (safe_gettimeofday(&c->own))
 		return (safe_mutex_unlock(c->printer));
-	printf("%ld %d is %s\n", t_diff(*t, *c->ref), c->n_id, ac);
+	printf("%ld %d has taken a dongle\n", t_diff(c->own, *c->ref), c->n_id);
 	return (safe_mutex_unlock(c->printer));
 }
 
-int	take(t_coder *c, t_dongle *d, t_c_args *a, volatile t_tmval *t)
+int	act(t_coder *c, char *ac, t_c_args *ar)
+{
+	if (safe_mutex_lock(c->printer))
+		return (1);
+	if (check_poison(ar->begin_mtx, c->poison) != 0)
+	{
+		if (!safe_mutex_unlock(c->printer))
+			return (1);
+		return (1);
+	}
+	if (safe_gettimeofday(&c->own))
+		return (safe_mutex_unlock(c->printer));
+	printf("%ld %d is %s\n", t_diff(c->own, *c->ref), c->n_id, ac);
+	return (safe_mutex_unlock(c->printer));
+}
+
+int	take(t_coder *c, t_dongle *d, t_c_args *a)
 {
 	if (check_poison(a->begin_mtx, c->poison) != 0)
 		return (1);
 	while (d == NULL)
-	{
-		if (check_poison(a->begin_mtx, c->poison) != 0)
-			return (1);
-	}
+		return (1);
 	if (safe_mutex_lock(&d->lock))
 		return (1);
 	queue(d, c);
@@ -74,7 +79,9 @@ int	take(t_coder *c, t_dongle *d, t_c_args *a, volatile t_tmval *t)
 		if (check_poison(a->begin_mtx, c->poison))
 	        return (safe_mutex_unlock(&d->lock));
 	}
-	while (t_diff(*t, d->last_used) < d->cool_down)
+	if (safe_gettimeofday(&c->own))
+		return (safe_mutex_unlock(&d->lock));
+	while (t_diff(c->own, d->last_used) < d->cool_down)
 	{
 		if (s_tmwt(&d->cond, &d->lock, &d->ts))
 			return (safe_mutex_unlock(&d->lock));

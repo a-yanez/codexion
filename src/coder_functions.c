@@ -17,34 +17,40 @@
 #include <stdint.h>
 #include <unistd.h>
 
-static int	coder_loop_one(t_coder *coder, t_c_args *ar, struct timeval *t)
+static int	coder_loop_one(t_coder *coder, t_c_args *ar)
 {
-	if (take(coder, coder->dongles[0], ar, t))
+	if (take(coder, coder->dongles[0], ar))
 		return (1);
-	if (print_take(coder, ar, t))
+	if (print_take(coder, ar))
 		return (1);
-	if (take(coder, coder->dongles[1], ar, t))
+	if (take(coder, coder->dongles[1], ar))
 		return (1);
-	if (print_take(coder, ar, t))
+	if (print_take(coder, ar))
 		return (1);
-	if (act(coder, "compiling", ar, t))
+	if (act(coder, "compiling", ar))
+		return (1);
+	if (safe_mutex_unlock(&coder->seal))
 		return (1);
 	if (safe_gettimeofday(&coder->last_compile_start))
+	{
+		if (!safe_mutex_unlock(&coder->seal))
+			return (1);
 		return (1);
+	}
 	usleep(coder->compt_time);
 	return (0);
 }
 
-static int	coder_loop_two(t_coder *coder, t_c_args *ar, struct timeval *t)
+static int	coder_loop_two(t_coder *coder, t_c_args *ar)
 {
 	if (release(coder->dongles[0], ar, coder))
 		return (1);
 	if (release(coder->dongles[1], ar, coder))
 		return (1);
-	if (act(coder, "debugging", ar, t))
+	if (act(coder, "debugging", ar))
 		return (1);
 	usleep(coder->db_time);
-	if (act(coder, "refactoring", ar, t))
+	if (act(coder, "refactoring", ar))
 		return (1);
 	usleep(coder->refac_time);
 	coder->comp_times += 1;
@@ -65,7 +71,6 @@ void	*coder_routine(void *args)
 {
 	t_coder			*coder;
 	t_c_args		*ar;
-	struct timeval	*t;
 	int				signal;
 
 	ar = (t_c_args *)args;
@@ -73,13 +78,12 @@ void	*coder_routine(void *args)
 	if (signal)
 		return ((void *)(intptr_t)signal);
 	coder = ar->coder;
-	t = ar->t;
 	while (coder->comp_times < coder->cycles && !(*(coder->poison)))
 	{
-		signal = coder_loop_one(coder, ar, t);
+		signal = coder_loop_one(coder, ar);
 		if (signal)
 			return ((void *)(intptr_t)signal);
-		signal = coder_loop_two(coder, ar, t);
+		signal = coder_loop_two(coder, ar);
 		if (signal)
 			return ((void *)(intptr_t)signal);
 	}

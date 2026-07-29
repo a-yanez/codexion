@@ -22,11 +22,13 @@ int	destroy_conds(t_args *args)
 	dongles = args->dongles;
 	init_cond = args->cnd_init;
 	if (init_cond > 0)
-		pthread_cond_destroy(&args->begin_cnd);
+		if (pthread_cond_destroy(&args->begin_cnd))
+			return (-1);
 	i = 0;
 	while (i < init_cond - 1)
 	{
-		pthread_cond_destroy(&dongles[i].cond);
+		if (pthread_cond_destroy(&dongles[i].cond))
+			return (-1);
 		i++;
 	}
 	return (0);
@@ -47,50 +49,6 @@ int	init_cond(t_args *args)
 		if (pthread_cond_init(&dongles[i].cond, NULL))
 			return (destroy_conds(args));
 		args->cnd_init += 1;
-		i++;
-	}
-	return (0);
-}
-
-int	destroy_mutex(t_args *args)
-{
-	int			i;
-	int			init_mutex;
-	t_dongle	*dongles;
-
-	dongles = args->dongles;
-	init_mutex = args->mtx_init;
-	if (init_mutex > 0)
-		pthread_mutex_destroy(&args->begin_mtx);
-	if (init_mutex > 1)
-		pthread_mutex_destroy(&args->printer);
-	i = 0;
-	while (i < init_mutex - 2)
-	{
-		pthread_mutex_destroy(&dongles[i].lock);
-		i++;
-	}
-	return (0);
-}
-
-int	init_mutex(t_args *args)
-{
-	int			i;
-	t_dongle	*dongles;
-
-	dongles = args->dongles;
-	if (pthread_mutex_init(&args->begin_mtx, NULL))
-		return (1);
-	args->mtx_init += 1;
-	if (pthread_mutex_init(&args->printer, NULL))
-		return (1);
-	args->mtx_init += 1;
-	i = 0;
-	while (i < args->data[0])
-	{
-		if (pthread_mutex_init(&dongles[i].lock, NULL))
-			return (destroy_mutex(args));
-		args->mtx_init += 1;
 		i++;
 	}
 	return (0);

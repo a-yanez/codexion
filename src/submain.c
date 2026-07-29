@@ -21,7 +21,7 @@ int	adding_parsed_data(char **argv, t_args *args)
 	data = parser(argv);
 	if (!data)
 	{
-		fprintf(stderr, "Memory allocation failed for parsed arguments.\n");
+		printf("Memory allocation failed for parsed arguments.\n");
 		return (1);
 	}
 	args->data = data;

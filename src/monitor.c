@@ -57,18 +57,37 @@ static int	coders_working(t_args *args)
 	return (args->coder_done >= 0 && args->coder_done < args->data[0]);
 }
 
+static long	calculate_delta(t_coder *coder, t_tmval t)
+{
+	long	t_delta;
+	t_tmval	last_comp;
+
+	if (safe_mutex_lock(&coder->seal))
+		return (-1);
+	last_comp.tv_sec = coder->last_compile_start.tv_sec;
+	last_comp.tv_usec = coder->last_compile_start.tv_usec;
+ 	if (safe_mutex_unlock(&coder->seal))
+		return (-1);
+  	t_delta = t_diff(t, last_comp);
+  	return (t_delta);
+}
+
 static int	burnout(t_args *args, t_coder *coders)
 {
 	int				i;
 	suseconds_t		burnout;
-	struct timeval	t;
+	t_tmval			t;
+	long			t_delta;
 
 	i = 0;
 	t = args->ref_t[1];
 	burnout = args->data[1];
 	while (i < args->data[0])
 	{
-		if (t_diff(t, coders[i].last_compile_start) >= burnout)
+		t_delta = calculate_delta(&coders[i], t);
+		if (t_delta < 0)
+			return (-1);
+		if (t_delta >= burnout)
 		{
 			args->burnt_coder = coders[i].n_id;
 			if (safe_mutex_lock(&args->begin_mtx))
@@ -113,6 +132,8 @@ void	*monitor_routine(void *args)
 	ar = (t_args *)args;
 	coders = ar->coders;
 	if (wait(&ar->begin_mtx, &ar->begin_cnd, &ar->coder_ready, &ar->data[0]))
+		return (NULL);
+	if (safe_gettimeofday(&(ar->ref_t[1])))
 		return (NULL);
 	while (coders_working(ar))
 	{

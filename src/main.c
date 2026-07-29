@@ -84,7 +84,7 @@ void	run_codexion(t_args *args)
 		return ;
 	pass_the_ref(args);
 	if (threading_coders(args))
-		return ;	
+		return ;
 	if (sf_thread_create(&monitor, monitor_routine, args))
 		return ;
 	if (safe_thread_join(monitor))
