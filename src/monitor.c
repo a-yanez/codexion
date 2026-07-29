@@ -102,25 +102,30 @@ static int	burnout(t_args *args, t_coder *coders)
 	return (0);
 }
 
-static void	print_burnout(t_args *args)
+static int	print_burnout(t_args *args)
 {
-	struct timeval	ref;
-	struct timeval	t;
-	int				coder_id;
-	long			b_time;
-	int				i;
+	t_dongle	*dongles;
+	long		b_time;
+	int			i;
 
-	i = 0;
-	while (i < args->data[0])
+	if (args->burnt_coder)
 	{
-		pthread_cond_broadcast(&args->dongles[i].cond);
-		i++;
+		dongles = args->dongles;
+		i = 0;
+		while (i < args->data[0])
+		{
+			if (safe_mutex_lock(&dongles[i].lock))
+				return (-1);
+			if (safe_cond_broadcast(&args->dongles[i].cond))
+				return (safe_mutex_unlock(&dongles[i].lock));
+			if (safe_mutex_unlock(&dongles[i].lock))
+				return (-1);
+			i++;
+		}
+		b_time = t_diff(args->ref_t[1], args->ref_t[0]);
+		printf("%ld %d burned out\n", b_time, args->burnt_coder);
 	}
-	ref = args->ref_t[0];
-	t = args->ref_t[1];
-	coder_id = args->burnt_coder;
-	b_time = t_diff(t, ref);
-	printf("%ld %d burned out\n", b_time, coder_id);
+	return (0);
 }
 
 void	*monitor_routine(void *args)
@@ -145,7 +150,6 @@ void	*monitor_routine(void *args)
 		else if (signal < 0)
 			return (NULL);
 	}
-	if (ar->burnt_coder)
-		print_burnout(ar);
+	print_burnout(ar);
 	return (NULL);
 }

@@ -32,6 +32,8 @@ t_args	*argumenting(void)
 	args->poison = 0;
 	args->cnd_init = 0;
 	args->mtx_init = 0;
+	args->cdr_mtx = 0;
+	args->dng_mtx = 0;
 	args->data = NULL;
 	args->coders = NULL;
 	args->dongles = NULL;
@@ -66,6 +68,7 @@ int	joining_workers(t_args *args)
 	{
 		if (safe_thread_join(args->coders[i].thread_id))
 			return (1);
+		printf("Worker %d finished\n", i + 1);
 		i++;
 	}
 	return (0);

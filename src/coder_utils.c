@@ -43,7 +43,7 @@ int	print_take(t_coder *c, t_c_args *ar)
 	}
 	if (safe_gettimeofday(&c->own))
 		return (safe_mutex_unlock(c->printer));
-	printf("%ld %d has taken a dongle\n", t_diff(c->own, *c->ref), c->n_id);
+	printf("%ld %d has taken a dongle\n", t_diff(c->own, c->ref), c->n_id);
 	return (safe_mutex_unlock(c->printer));
 }
 
@@ -59,7 +59,7 @@ int	act(t_coder *c, char *ac, t_c_args *ar)
 	}
 	if (safe_gettimeofday(&c->own))
 		return (safe_mutex_unlock(c->printer));
-	printf("%ld %d is %s\n", t_diff(c->own, *c->ref), c->n_id, ac);
+	printf("%ld %d is %s\n", t_diff(c->own, c->ref), c->n_id, ac);
 	return (safe_mutex_unlock(c->printer));
 }
 

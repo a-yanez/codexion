@@ -88,7 +88,6 @@ static t_coder	*coder_init(t_args *args)
 		coders[i].refac_time = data[4] * 1000;
 		coders[i].cycles = data[5];
 		coders[i].printer = &args->printer;
-		coders[i].ref = &args->ref_t[0];
 		coders[i].poison = &args->poison;
 		assign_dongles(&(coders[i]), dongles, i, data[0]);
 		i++;

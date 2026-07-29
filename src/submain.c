@@ -52,6 +52,8 @@ void	pass_the_ref(t_args *args)
 	ref = args->ref_t[0];
 	while (i < args->data[0])
 	{
+		coders[i].ref.tv_sec = ref.tv_sec;
+		coders[i].ref.tv_usec = ref.tv_usec;
 		coders[i].last_compile_start.tv_sec = ref.tv_sec;
 		coders[i].last_compile_start.tv_usec = ref.tv_usec;
 		i++;

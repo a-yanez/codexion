@@ -19,10 +19,10 @@ static int	destroy_coders_mutex(t_args *args)
 	int			init_mutex;
 	t_coder		*coders;
 
-	init_mutex = args->mtx_init;
+	init_mutex = args->cdr_mtx;
 	coders = args->coders;
 	i = 0;
-	while (i < (init_mutex - 2 - args->data[0]))
+	while (i < init_mutex)
 	{
 		if (pthread_mutex_destroy(&coders[i].seal))
 			return (-1);
@@ -46,7 +46,7 @@ int	destroy_mutex(t_args *args)
 		if (pthread_mutex_destroy(&args->printer))
 			return (-1);
 	i = 0;
-	while (i < init_mutex - 2)
+	while (i < args->dng_mtx)
 	{
 		if (pthread_mutex_destroy(&dongles[i].lock))
 			return (-1);
@@ -68,7 +68,7 @@ static int	init_coders_mutex(t_args *args)
 	{
 		if (pthread_mutex_init(&coders[i].seal, NULL))
 			return (1);
-		args->mtx_init += 1;
+		args->cdr_mtx += 1;
 		i++;
 	}
 	return(0);
@@ -91,7 +91,7 @@ int	init_mutex(t_args *args)
 	{
 		if (pthread_mutex_init(&dongles[i].lock, NULL))
 			return (destroy_mutex(args));
-		args->mtx_init += 1;
+		args->dng_mtx += 1;
 		i++;
 	}
 	if (init_coders_mutex(args))

@@ -50,7 +50,7 @@ typedef struct s_coder
 	suseconds_t		refac_time;
 	struct s_dongle	*dongles[2];
 	struct timeval	last_compile_start;
-	struct timeval	*ref;
+	struct timeval	ref;
 	struct timeval	own;
 	pthread_mutex_t	*printer;
 	pthread_mutex_t	seal;
@@ -66,6 +66,8 @@ typedef struct s_general_args
 	int				burnt_coder;
 	int				mtx_init;
 	int				cnd_init;
+	int				cdr_mtx;
+	int				dng_mtx;
 	struct timeval	ref_t[2];
 	t_dongle		*dongles;
 	t_coder			*coders;
