@@ -82,7 +82,7 @@ typedef struct s_coder_arguments
 	t_coder			*coder;
 	int				*coder_ready;
 	int				*coder_done;
-	int				*coder_num;
+	int				coder_num;
 	pthread_mutex_t	*begin_mtx;
 	pthread_cond_t	*begin_cnd;
 }	t_c_args;
@@ -110,7 +110,7 @@ int			init_mutex(t_args *args);
 
 //monitor functions
 void		*monitor_routine(void *args);
-int			wait(pthread_mutex_t *m, pthread_cond_t *c, int *ready, int *num);
+int			wait(pthread_mutex_t *m, pthread_cond_t *c, int *ready, int num);
 
 //monitor utils
 int			coders_working(t_args *args);

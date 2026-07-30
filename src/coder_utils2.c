@@ -44,6 +44,8 @@ static int	wait_for_cooldown(t_coder *c, t_dongle *d, t_c_args *a)
 	{
 		if (s_tmwt(&d->cond, &d->lock, &d->ts))
 			return (safe_mutex_unlock(&d->lock, 1));
+		if (safe_gettimeofday(&c->own))
+			return (safe_mutex_unlock(&d->lock, 1));
 		if (check_poison(a->begin_mtx, c->poison))
 			return (safe_mutex_unlock(&d->lock, 1));
 	}
@@ -54,6 +56,7 @@ int	take(t_coder *c, t_dongle *d, t_c_args *a)
 {
 	if (check_and_lock(c, d, a))
 		return (1);
+	queue(d, c);
 	if (wait_for_condition(c, d, a))
 		return (1);
 	if (wait_for_cooldown(c, d, a))

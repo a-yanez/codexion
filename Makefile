@@ -1,34 +1,44 @@
 NAME := codexion
+
 SRC_DIR := src
 INC_DIR := include
 BUILD_DIR := build
 
-# Find all the source files
-SRCS := $(shell find $(SRC_DIR) -name "*.c")
-OBJS := $(SRCS:$(SRC_DIR)/%.c=$(BUILD_DIR)/%.o)
-
-# Compile flags
 CC := cc
 CFLAGS := -Wall -Wextra -Werror -pthread -I$(INC_DIR)
+# Debug flags
+DBGFLAGS := $(CFLAGS) -g3 -O0 \
+			-fsanitize=address,undefined \
+			-fno-omit-frame-pointer
+
+# Automatically generate header dependencies
+DEPFLAGS := -MMD -MP
+
+SRCS := $(shell find $(SRC_DIR) -name "*.c")
+OBJS := $(SRCS:$(SRC_DIR)/%.c=$(BUILD_DIR)/%.o)
+DEPS := $(OBJS:.o=.d)
 
 all: $(NAME)
 
 $(NAME): $(OBJS)
-	$(CC) $^ -o $(NAME)
+	$(CC) $(CFLAGS) $^ -o $@
 
 $(BUILD_DIR)/%.o: $(SRC_DIR)/%.c
 	@mkdir -p $(dir $@)
-	$(CC) $(CFLAGS) -c $< -o $@
+	$(CC) $(CFLAGS) $(DEPFLAGS) -c $< -o $@
 
-debug: $(OBJS)
-	$(CC) -g $^ -o $(NAME)
+debug: CFLAGS := $(DBGFLAGS)
+debug: fclean $(NAME)
+
+clean:
+	rm -rf $(BUILD_DIR)
 
 fclean: clean
 	rm -f $(NAME)
 
-clean:
-	rm -f $(OBJS)
-
 re: fclean all
 
-.PHONY: all clean fclean re
+# Include generated dependency files if they exist
+-include $(DEPS)
+
+.PHONY: all clean fclean re debug

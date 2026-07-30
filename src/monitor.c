@@ -31,14 +31,14 @@ parameters:
 7. dongle cooldown - idx 6
  */
 
-int	wait(pthread_mutex_t *m, pthread_cond_t *c, int *ready, int *num)
+int	wait(pthread_mutex_t *m, pthread_cond_t *c, int *ready, int num)
 {
 	if (safe_mutex_lock(m))
 		return (1);
 	*ready += 1;
-	if (*ready < (*num + 1))
+	if (*ready < num + 1)
 	{
-		while (*ready < (*num + 1))
+		while (*ready < num + 1)
 		{
 			if (safe_cond_wait(c, m))
 				return (safe_mutex_unlock(m, 1));
@@ -116,7 +116,7 @@ void	*monitor_routine(void *args)
 
 	ar = (t_args *)args;
 	coders = ar->coders;
-	if (wait(&ar->begin_mtx, &ar->begin_cnd, &ar->coder_ready, &ar->data[0]))
+	if (wait(&ar->begin_mtx, &ar->begin_cnd, &ar->coder_ready, ar->data[0]))
 		return (NULL);
 	if (safe_gettimeofday(&(ar->ref_t[1])))
 		return (NULL);

@@ -68,7 +68,6 @@ int	joining_workers(t_args *args)
 	{
 		if (safe_thread_join(args->coders[i].thread_id))
 			return (1);
-		printf("Worker %d finished\n", i + 1);
 		i++;
 	}
 	return (0);
