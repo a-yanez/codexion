@@ -19,14 +19,28 @@
 
 static int	coder_loop_one(t_coder *coder, t_c_args *ar)
 {
+	int	drop_signal;
+
 	if (take(coder, coder->dongles[0], ar))
 		return (1);
+	drop_signal = take(coder, coder->dongles[1], ar);
+	if (drop_signal == 3)
+	{
+		if (drop(coder->dongles[0], coder))
+			return (1);
+		return (3);
+	}
+	else if (drop_signal)
+		return (1);
 	if (print_take(coder, ar))
 		return (1);
-	if (take(coder, coder->dongles[1], ar))
-		return (1);
 	if (print_take(coder, ar))
 		return (1);
+	return (0);
+}
+
+static int	coder_loop_two(t_coder *coder, t_c_args *ar)
+{
 	if (act(coder, "compiling", ar))
 		return (1);
 	if (safe_mutex_lock(&coder->seal))
@@ -37,10 +51,6 @@ static int	coder_loop_one(t_coder *coder, t_c_args *ar)
 		return (1);
 	usleep(coder->compt_time);
 	return (0);
-}
-
-static int	coder_loop_two(t_coder *coder, t_c_args *ar)
-{
 	if (release(coder->dongles[0], ar, coder))
 		return (1);
 	if (release(coder->dongles[1], ar, coder))
@@ -89,7 +99,9 @@ void	*coder_routine(void *args)
 	while (coder->comp_times < coder->cycles && !(*(coder->poison)))
 	{
 		signal = coder_loop_one(coder, ar);
-		if (signal)
+		if (signal == 3)
+			continue ;
+		else if (signal)
 			return ((void *)(intptr_t)signal);
 		signal = coder_loop_two(coder, ar);
 		if (signal)

@@ -70,6 +70,20 @@ int	release(t_dongle *dongle, t_c_args *ar, t_coder *coder)
 	if (set_timeout(&dongle->ts, dongle->cool_down))
 		return (safe_mutex_unlock(&dongle->lock, 1));
 	dongle->on_use = 0;
+	coder->holding -= 1;
+	if (safe_cond_signal(&dongle->cond))
+		return (safe_mutex_unlock(&dongle->lock, 1));
+	if (safe_mutex_unlock(&dongle->lock, 0))
+		return (1);
+	return (0);
+}
+
+int	drop(t_dongle *dongle, t_coder *coder)
+{
+	if (safe_mutex_lock(&dongle->lock))
+		return (1);
+	dongle->on_use = 0;
+	coder->holding -= 1;
 	if (safe_cond_signal(&dongle->cond))
 		return (safe_mutex_unlock(&dongle->lock, 1));
 	if (safe_mutex_unlock(&dongle->lock, 0))

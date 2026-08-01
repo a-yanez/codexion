@@ -43,6 +43,7 @@ typedef struct s_coder
 	int				n_id;
 	int				cycles;
 	int				comp_times;
+	int				holding;
 	int				*poison;
 	pthread_t		thread_id;
 	suseconds_t		compt_time;
@@ -125,6 +126,7 @@ int			print_take(t_coder *c, t_c_args *ar);
 int			act(t_coder *c, char *ac, t_c_args *ar);
 int			take(t_coder *c, t_dongle *d, t_c_args *a);
 int			release(t_dongle *dongle, t_c_args *ar, t_coder *coder);
+int			drop(t_dongle *dongle, t_coder *coder);
 
 //dongle functions
 void		edf(t_dongle *dongle);
