@@ -30,7 +30,7 @@ static int	coder_loop_one(t_coder *coder, t_c_args *ar)
 			return (1);
 		return (3);
 	}
-	else if (drop_signal)
+	else if (drop_signal != 0)
 		return (1);
 	if (print_take(coder, ar))
 		return (1);
@@ -50,7 +50,6 @@ static int	coder_loop_two(t_coder *coder, t_c_args *ar)
 	if (safe_mutex_unlock(&coder->seal, 0))
 		return (1);
 	usleep(coder->compt_time);
-	return (0);
 	if (release(coder->dongles[0], ar, coder))
 		return (1);
 	if (release(coder->dongles[1], ar, coder))
@@ -77,14 +76,6 @@ static int	final_part(t_c_args *c_args, t_coder *coder)
 	return (0);
 }
 
-static int	special_coder_uwu(t_coder *coder, t_c_args *ar)
-{
-	int	c_num;
-
-	c_num = ar->coder_num;
-	return (coder->comp_times > 0 && coder->n_id == c_num && c_num > 1);
-}
-
 void	*coder_routine(void *args)
 {
 	t_coder			*coder;
@@ -106,8 +97,6 @@ void	*coder_routine(void *args)
 		signal = coder_loop_two(coder, ar);
 		if (signal)
 			return ((void *)(intptr_t)signal);
-		if (special_coder_uwu(coder, ar))
-			ft_pswap((void **)&coder->dongles[0], (void **)&coder->dongles[1]);
 	}
 	final_part((t_c_args *)args, coder);
 	return (NULL);
