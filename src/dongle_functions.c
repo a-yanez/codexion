@@ -33,12 +33,12 @@ void	edf(t_dongle *dongle)
 }
 */
 
-int edf(t_dongle *dongle)
+int	edf(t_dongle *dongle)
 {
-	t_coder *c1;
-	t_coder *c2;
-	t_tmval comp1;
-	t_tmval comp2;
+	t_coder	*c1;
+	t_coder	*c2;
+	t_tmval	comp1;
+	t_tmval	comp2;
 
 	c1 = dongle->queue[0];
 	c2 = dongle->queue[1];
@@ -99,7 +99,6 @@ int	queue(t_dongle *dongle, t_coder *coder)
 		if (edf(dongle))
 			return (1);
 	}
-
 	return (0);
 }
 

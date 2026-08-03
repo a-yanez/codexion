@@ -44,6 +44,7 @@ typedef struct s_coder
 	int				cycles;
 	int				comp_times;
 	int				holding;
+	int				finished;
 	int				*poison;
 	pthread_t		thread_id;
 	suseconds_t		compt_time;
@@ -84,6 +85,7 @@ typedef struct s_coder_arguments
 	int				*coder_ready;
 	int				*coder_done;
 	int				coder_num;
+	int				burnout;
 	pthread_mutex_t	*begin_mtx;
 	pthread_cond_t	*begin_cnd;
 }	t_c_args;
@@ -111,11 +113,12 @@ int			init_mutex(t_args *args);
 
 //monitor functions
 void		*monitor_routine(void *args);
-int			wait(pthread_mutex_t *m, pthread_cond_t *c, int *ready, int num);
 
 //monitor utils
+int			wait(pthread_mutex_t *m, pthread_cond_t *c, int *ready, int num);
 int			coders_working(t_args *args);
 long		calculate_delta(t_coder *coder, t_tmval t);
+int			is_coder_done(t_coder *coder);
 
 //coder functions
 void		*coder_routine(void *args);
@@ -130,7 +133,7 @@ int			drop(t_dongle *dongle, t_coder *coder);
 
 //dongle functions
 //void		edf(t_dongle *dongle);
-int 		edf(t_dongle *dongle);
+int			edf(t_dongle *dongle);
 //void		queue(t_dongle *dongle, t_coder *coder);
 int			queue(t_dongle *dongle, t_coder *coder);
 void		pop(t_dongle *dongle);

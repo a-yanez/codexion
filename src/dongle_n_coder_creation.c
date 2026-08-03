@@ -71,26 +71,25 @@ static t_coder	*coder_init(t_args *args)
 {
 	t_coder		*coders;
 	t_dongle	*dongles;
-	int			*data;
 	int			i;
 
-	data = args->data;
 	dongles = args->dongles;
-	coders = (t_coder *)malloc(sizeof(t_coder) * data[0]);
+	coders = (t_coder *)malloc(sizeof(t_coder) * args->data[0]);
 	if (!coders)
 		return (NULL);
 	i = 0;
-	while (i < data[0])
+	while (i < args->data[0])
 	{
 		coders[i].n_id = i + 1;
-		coders[i].compt_time = data[2] * 1000;
-		coders[i].db_time = data[3] * 1000;
-		coders[i].refac_time = data[4] * 1000;
-		coders[i].cycles = data[5];
+		coders[i].compt_time = args->data[2] * 1000;
+		coders[i].db_time = args->data[3] * 1000;
+		coders[i].refac_time = args->data[4] * 1000;
+		coders[i].cycles = args->data[5];
 		coders[i].holding = 0;
+		coders[i].finished = 0;
 		coders[i].printer = &args->printer;
 		coders[i].poison = &args->poison;
-		assign_dongles(&(coders[i]), dongles, i, data[0]);
+		assign_dongles(&(coders[i]), dongles, i, args->data[0]);
 		i++;
 	}
 	return (coders);
@@ -127,6 +126,7 @@ t_c_args	*create_c_args(t_args *args)
 	{
 		c_args[i].coder = &coders[i];
 		c_args[i].coder_num = args->data[0];
+		c_args[i].burnout = args->data[1];
 		c_args[i].coder_ready = &args->coder_ready;
 		c_args[i].coder_done = &args->coder_done;
 		c_args[i].begin_mtx = &args->begin_mtx;

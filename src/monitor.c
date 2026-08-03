@@ -20,7 +20,7 @@
 #include "utils/utils.h"
 
 /*
-The data array contains the data for the following
+The "data" array in args contains the data for the following
 parameters:
 1. number of coders - idx 0
 2. time to burnout - idx 1
@@ -31,54 +31,66 @@ parameters:
 7. dongle cooldown - idx 6
  */
 
-int	wait(pthread_mutex_t *m, pthread_cond_t *c, int *ready, int num)
+static int	done_n_deltat(t_args *args, t_coder *coder)
 {
-	if (safe_mutex_lock(m))
-		return (1);
-	*ready += 1;
-	if (*ready < num + 1)
+	long	delta_t;
+	int		done;
+
+	done = is_coder_done(coder);
+	if (done < 0)
+		return (-1);
+	else if (done)
+		return (0);
+	delta_t = calculate_delta(coder, args->ref_t[1]);
+	if (delta_t < 0)
+		return (-1);
+	else if (delta_t >= args->data[1])
 	{
-		while (*ready < num + 1)
-		{
-			if (safe_cond_wait(c, m))
-				return (safe_mutex_unlock(m, 1));
-		}
-	}
-	else
-	{
-		if (safe_cond_broadcast(c))
-			return (safe_mutex_unlock(m, 1));
-	}
-	if (safe_mutex_unlock(m, 0))
+		args->burnt_coder = coder->n_id;
+		if (safe_mutex_lock(&args->begin_mtx))
+			return (-1);
+		args->poison = 1;
+		if (safe_mutex_unlock(&args->begin_mtx, 0))
+			return (-1);
 		return (1);
+	}
 	return (0);
 }
 
 static int	burnout(t_args *args, t_coder *coders)
 {
 	int				i;
-	suseconds_t		burnout;
-	long			t_delta;
+	long			signal;
 
 	i = 0;
-	burnout = args->data[1];
 	while (i < args->data[0])
 	{
-		t_delta = calculate_delta(&coders[i], args->ref_t[1]);
-		if (t_delta < 0)
+		signal = done_n_deltat(args, &coders[i]);
+		if (signal < 0)
 			return (-1);
-		if (t_delta >= burnout)
-		{
-			args->burnt_coder = coders[i].n_id;
-			if (safe_mutex_lock(&args->begin_mtx))
-				return (-1);
-			args->poison = 1;
-			if (safe_mutex_unlock(&args->begin_mtx, 0))
-				return (-1);
+		else if (signal)
 			return (1);
-		}
 		i++;
 	}
+	return (0);
+}
+
+static int	inner_loop(t_args *args, int *working)
+{
+	int		signal;
+	t_coder	*coders;
+
+	coders = args->coders;
+	if (safe_gettimeofday(&(args->ref_t[1])))
+		return (-1);
+	signal = burnout(args, coders);
+	if (signal == 1)
+		return (1);
+	else if (signal < 0)
+		return (-1);
+	*working = coders_working(args);
+	if (*working < 0)
+		return (-1);
 	return (0);
 }
 
@@ -111,24 +123,24 @@ static int	print_burnout(t_args *args)
 void	*monitor_routine(void *args)
 {
 	t_args		*ar;
-	t_coder		*coders;
 	int			signal;
+	int			working;
 
 	ar = (t_args *)args;
-	coders = ar->coders;
 	if (wait(&ar->begin_mtx, &ar->begin_cnd, &ar->coder_ready, ar->data[0]))
 		return (NULL);
 	if (safe_gettimeofday(&(ar->ref_t[1])))
 		return (NULL);
-	while (coders_working(ar))
+	working = coders_working (ar);
+	if (working < 0)
+		return (NULL);
+	while (working)
 	{
-		if (safe_gettimeofday(&(ar->ref_t[1])))
+		signal = inner_loop(ar, &working);
+		if (signal < 0)
 			return (NULL);
-		signal = burnout(ar, coders);
-		if (signal == 1)
+		else if (signal)
 			break ;
-		else if (signal < 0)
-			return (NULL);
 	}
 	print_burnout(ar);
 	return (NULL);
