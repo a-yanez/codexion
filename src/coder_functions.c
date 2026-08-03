@@ -92,7 +92,7 @@ void	*coder_routine(void *args)
 	if (signal)
 		return ((void *)(intptr_t)signal);
 	coder = ar->coder;
-	while (coder->comp_times < coder->cycles && !(*(coder->poison)))
+	while (coder->comp_times < coder->cycles)
 	{
 		signal = coder_loop_one(coder, ar);
 		if (signal == 3)

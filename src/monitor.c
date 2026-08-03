@@ -54,43 +54,45 @@ int	wait(pthread_mutex_t *m, pthread_cond_t *c, int *ready, int num)
 	return (0);
 }
 
-static long	trick_the_delta(t_coder *coder, t_tmval clock)
+static int	done_n_deltat(t_args *args, t_coder *coder)
 {
 	long	delta_t;
-	int		done;
+	int 	done;
 
-	delta_t = calculate_delta(coder, clock);
-	if (delta_t < 0)
-		return (-1);
 	done = is_coder_done(coder);
 	if (done < 0)
 		return (-1);
 	else if (done)
-		delta_t = 0;
-	return (delta_t);
+		return (0);
+	delta_t = calculate_delta(coder, args->ref_t[1]);
+	if (delta_t < 0)
+		return (-1);
+	else if (delta_t >= args->data[1])
+	{
+		args->burnt_coder = coder->n_id;
+		if (safe_mutex_lock(&args->begin_mtx))
+			return (-1);
+		args->poison = 1;
+		if (safe_mutex_unlock(&args->begin_mtx, 0))
+			return (-1);
+		return (1);
+	}
+	return (0);
 }
 
 static int	burnout(t_args *args, t_coder *coders)
 {
 	int				i;
-	long			delta_t;
+	long			signal;
 
 	i = 0;
 	while (i < args->data[0])
 	{
-		delta_t = trick_the_delta(&coders[i], args->ref_t[1]);
-		if (delta_t < 0)
+		signal = done_n_deltat(args, &coders[i]);
+		if (signal < 0)
 			return (-1);
-		if (delta_t >= args->data[1])
-		{
-			args->burnt_coder = coders[i].n_id;
-			if (safe_mutex_lock(&args->begin_mtx))
-				return (-1);
-			args->poison = 1;
-			if (safe_mutex_unlock(&args->begin_mtx, 0))
-				return (-1);
+		else if (signal)
 			return (1);
-		}
 		i++;
 	}
 	return (0);
