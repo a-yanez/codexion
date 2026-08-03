@@ -62,6 +62,6 @@ int	safe_mutex_unlock(pthread_mutex_t *mutex, int from_error)
 		return (signal);
 	}
 	if (from_error)
-		signal = 1;
+		signal = from_error;
 	return (signal);
 }
