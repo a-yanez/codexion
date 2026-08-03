@@ -31,33 +31,10 @@ parameters:
 7. dongle cooldown - idx 6
  */
 
-int	wait(pthread_mutex_t *m, pthread_cond_t *c, int *ready, int num)
-{
-	if (safe_mutex_lock(m))
-		return (1);
-	*ready += 1;
-	if (*ready < num + 1)
-	{
-		while (*ready < num + 1)
-		{
-			if (safe_cond_wait(c, m))
-				return (safe_mutex_unlock(m, 1));
-		}
-	}
-	else
-	{
-		if (safe_cond_broadcast(c))
-			return (safe_mutex_unlock(m, 1));
-	}
-	if (safe_mutex_unlock(m, 0))
-		return (1);
-	return (0);
-}
-
 static int	done_n_deltat(t_args *args, t_coder *coder)
 {
 	long	delta_t;
-	int 	done;
+	int		done;
 
 	done = is_coder_done(coder);
 	if (done < 0)
@@ -98,6 +75,25 @@ static int	burnout(t_args *args, t_coder *coders)
 	return (0);
 }
 
+static int	inner_loop(t_args *args, int *working)
+{
+	int		signal;
+	t_coder	*coders;
+
+	coders = args->coders;
+	if (safe_gettimeofday(&(args->ref_t[1])))
+		return (-1);
+	signal = burnout(args, coders);
+	if (signal == 1)
+		return (1);
+	else if (signal < 0)
+		return (-1);
+	*working = coders_working(args);
+	if (*working < 0)
+		return (-1);
+	return (0);
+}
+
 static int	print_burnout(t_args *args)
 {
 	t_dongle	*dongles;
@@ -127,24 +123,24 @@ static int	print_burnout(t_args *args)
 void	*monitor_routine(void *args)
 {
 	t_args		*ar;
-	t_coder		*coders;
 	int			signal;
+	int			working;
 
 	ar = (t_args *)args;
-	coders = ar->coders;
 	if (wait(&ar->begin_mtx, &ar->begin_cnd, &ar->coder_ready, ar->data[0]))
 		return (NULL);
 	if (safe_gettimeofday(&(ar->ref_t[1])))
 		return (NULL);
-	while (coders_working(ar))
+	working = coders_working (ar);
+	if (working < 0)
+		return (NULL);
+	while (working)
 	{
-		if (safe_gettimeofday(&(ar->ref_t[1])))
+		signal = inner_loop(ar, &working);
+		if (signal < 0)
 			return (NULL);
-		signal = burnout(ar, coders);
-		if (signal == 1)
+		else if (signal)
 			break ;
-		else if (signal < 0)
-			return (NULL);
 	}
 	print_burnout(ar);
 	return (NULL);

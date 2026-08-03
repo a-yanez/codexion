@@ -113,9 +113,9 @@ int			init_mutex(t_args *args);
 
 //monitor functions
 void		*monitor_routine(void *args);
-int			wait(pthread_mutex_t *m, pthread_cond_t *c, int *ready, int num);
 
 //monitor utils
+int			wait(pthread_mutex_t *m, pthread_cond_t *c, int *ready, int num);
 int			coders_working(t_args *args);
 long		calculate_delta(t_coder *coder, t_tmval t);
 int			is_coder_done(t_coder *coder);
