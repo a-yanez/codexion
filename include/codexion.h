@@ -84,6 +84,7 @@ typedef struct s_coder_arguments
 	int				*coder_ready;
 	int				*coder_done;
 	int				coder_num;
+	int				burnout;
 	pthread_mutex_t	*begin_mtx;
 	pthread_cond_t	*begin_cnd;
 }	t_c_args;
