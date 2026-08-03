@@ -33,13 +33,18 @@ int	check_poison(pthread_mutex_t *b_mtx, int *poison)
 
 int	print_take(t_coder *c, t_c_args *ar)
 {
+	long	delta_t;
+
 	if (safe_mutex_lock(c->printer))
 		return (1);
 	if (check_poison(ar->begin_mtx, c->poison) != 0)
 		return (safe_mutex_unlock(c->printer, 1));
 	if (safe_gettimeofday(&c->own))
 		return (safe_mutex_unlock(c->printer, 1));
-	if (t_diff(c->own, c->ref) >= ar->burnout)
+	delta_t = calculate_delta(c, c->own);
+	if (delta_t < 0)
+		return (safe_mutex_unlock(c->printer, 1));
+	else if (delta_t >= ar->burnout)
 		return (safe_mutex_unlock(c->printer, 3));
 	printf("%ld %d has taken a dongle\n", t_diff(c->own, c->ref), c->n_id);
 	if (safe_mutex_unlock(c->printer, 0))
@@ -49,14 +54,19 @@ int	print_take(t_coder *c, t_c_args *ar)
 
 int	act(t_coder *c, char *ac, t_c_args *ar)
 {
+	long	delta_t;
+
 	if (safe_mutex_lock(c->printer))
 		return (1);
 	if (check_poison(ar->begin_mtx, c->poison) != 0)
 		return (safe_mutex_unlock(c->printer, 1));
 	if (safe_gettimeofday(&c->own))
 		return (safe_mutex_unlock(c->printer, 1));
-	if (t_diff(c->own, c->ref) >= ar->burnout)
+	delta_t = calculate_delta(c, c->own);
+	if (delta_t < 0)
 		return (safe_mutex_unlock(c->printer, 1));
+	else if (delta_t >= ar->burnout)
+		return (safe_mutex_unlock(c->printer, 3));
 	printf("%ld %d is %s\n", t_diff(c->own, c->ref), c->n_id, ac);
 	if (safe_mutex_unlock(c->printer, 0))
 		return (1);

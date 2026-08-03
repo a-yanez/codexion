@@ -31,3 +31,15 @@ long	calculate_delta(t_coder *coder, t_tmval t)
 	t_delta = t_diff(t, last_comp);
 	return (t_delta);
 }
+
+int	is_coder_done(t_coder *coder)
+{
+	int	finished;
+
+	if (safe_mutex_lock(&coder->seal))
+		return (-1);
+	finished = coder->finished;
+	if (safe_mutex_unlock(&coder->seal, 0))
+		return (-1);
+	return (finished);
+}

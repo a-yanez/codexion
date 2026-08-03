@@ -66,7 +66,12 @@ static int	coder_loop_two(t_coder *coder, t_c_args *ar)
 
 static int	final_part(t_c_args *c_args, t_coder *coder)
 {
-	if (*(coder->poison))
+	if (check_poison(c_args->begin_mtx, coder->poison) != 0)
+		return (1);
+	if (safe_mutex_lock(&coder->seal))
+		return (1);
+	coder->finished = 1;
+	if (safe_mutex_unlock(&coder->seal, 0))
 		return (1);
 	if (safe_mutex_lock(c_args->begin_mtx))
 		return (1);

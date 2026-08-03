@@ -20,7 +20,7 @@
 #include "utils/utils.h"
 
 /*
-The data array contains the data for the following
+The "data" array in args contains the data for the following
 parameters:
 1. number of coders - idx 0
 2. time to burnout - idx 1
@@ -54,20 +54,34 @@ int	wait(pthread_mutex_t *m, pthread_cond_t *c, int *ready, int num)
 	return (0);
 }
 
+static long	trick_the_delta(t_coder *coder, t_tmval clock)
+{
+	long	delta_t;
+	int		done;
+
+	delta_t = calculate_delta(coder, clock);
+	if (delta_t < 0)
+		return (-1);
+	done = is_coder_done(coder);
+	if (done < 0)
+		return (-1);
+	else if (done)
+		delta_t = 0;
+	return (delta_t);
+}
+
 static int	burnout(t_args *args, t_coder *coders)
 {
 	int				i;
-	suseconds_t		burnout;
-	long			t_delta;
+	long			delta_t;
 
 	i = 0;
-	burnout = args->data[1];
 	while (i < args->data[0])
 	{
-		t_delta = calculate_delta(&coders[i], args->ref_t[1]);
-		if (t_delta < 0)
+		delta_t = trick_the_delta(&coders[i], args->ref_t[1]);
+		if (delta_t < 0)
 			return (-1);
-		if (t_delta >= burnout)
+		if (delta_t >= args->data[1])
 		{
 			args->burnt_coder = coders[i].n_id;
 			if (safe_mutex_lock(&args->begin_mtx))
