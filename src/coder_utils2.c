@@ -77,7 +77,8 @@ int	take(t_coder *c, t_dongle *d, t_c_args *a)
 		return (3);
 	else if (drop_signal)
 		return (1);
-	queue(d, c);
+	if (queue(d, c))
+		return (safe_mutex_unlock(&d->lock, 1));
 	if (safe_gettimeofday(&c->own))
 		return (safe_mutex_unlock(&d->lock, 1));
 	if (wait_for_cooldown(c, d, a))

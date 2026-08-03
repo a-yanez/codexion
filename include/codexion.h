@@ -129,8 +129,10 @@ int			release(t_dongle *dongle, t_c_args *ar, t_coder *coder);
 int			drop(t_dongle *dongle, t_coder *coder);
 
 //dongle functions
-void		edf(t_dongle *dongle);
-void		queue(t_dongle *dongle, t_coder *coder);
+//void		edf(t_dongle *dongle);
+int 		edf(t_dongle *dongle);
+//void		queue(t_dongle *dongle, t_coder *coder);
+int			queue(t_dongle *dongle, t_coder *coder);
 void		pop(t_dongle *dongle);
 
 // cleaning

@@ -25,8 +25,7 @@ long	calculate_delta(t_coder *coder, t_tmval t)
 
 	if (safe_mutex_lock(&coder->seal))
 		return (-1);
-	last_comp.tv_sec = coder->last_compile_start.tv_sec;
-	last_comp.tv_usec = coder->last_compile_start.tv_usec;
+	last_comp = coder->last_compile_start;
 	if (safe_mutex_unlock(&coder->seal, 0))
 		return (-1);
 	t_delta = t_diff(t, last_comp);
