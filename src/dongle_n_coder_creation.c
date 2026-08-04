@@ -81,15 +81,16 @@ static t_coder	*coder_init(t_args *args)
 	while (i < args->data[0])
 	{
 		coders[i].n_id = i + 1;
+		coders[i].cycles = args->data[5];
+		coders[i].comp_times = 0;
+		coders[i].holding = 0;
+		coders[i].finished = 0;
+		coders[i].poison = &args->poison;
 		coders[i].compt_time = args->data[2] * 1000;
 		coders[i].db_time = args->data[3] * 1000;
 		coders[i].refac_time = args->data[4] * 1000;
-		coders[i].cycles = args->data[5];
-		coders[i].holding = 0;
-		coders[i].finished = 0;
-		coders[i].printer = &args->printer;
-		coders[i].poison = &args->poison;
 		assign_dongles(&(coders[i]), dongles, i, args->data[0]);
+		coders[i].printer = &args->printer;
 		i++;
 	}
 	return (coders);

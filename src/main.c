@@ -27,16 +27,17 @@ t_args	*argumenting(void)
 		fprintf(stderr, "Error while allocating memory for arguments.\n");
 		return (NULL);
 	}
+	args->data = NULL;
+	args->poison = 0;
 	args->coder_ready = 0;
 	args->coder_done = 0;
-	args->poison = 0;
-	args->cnd_init = 0;
+	args->burnt_coder = 0;
 	args->mtx_init = 0;
+	args->cnd_init = 0;
 	args->cdr_mtx = 0;
 	args->dng_mtx = 0;
-	args->data = NULL;
-	args->coders = NULL;
 	args->dongles = NULL;
+	args->coders = NULL;
 	args->c_args = NULL;
 	return (args);
 }

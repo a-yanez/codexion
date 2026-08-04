@@ -115,7 +115,7 @@ static int	print_burnout(t_args *args)
 			i++;
 		}
 		b_time = t_diff(args->ref_t[1], args->ref_t[0]);
-		printf("%ld %d burned out\n", b_time, args->burnt_coder);
+		printf("%lld %d burned out\n", (long long)b_time, args->burnt_coder);
 	}
 	return (0);
 }

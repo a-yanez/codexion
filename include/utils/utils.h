@@ -13,7 +13,8 @@
 #ifndef UTILS_H
 # define UTILS_H
 
-# include "codexion.h"
+# include <bits/types/struct_timeval.h>
+# include <pthread.h>
 # include <inttypes.h>
 # include <time.h>
 
@@ -22,11 +23,6 @@ int		ft_isdigit(int c);
 
 // pointer swapper
 void	ft_pswap(void **a, void **b);
-
-//Function to free memory
-void	free_dongles(t_dongle **dongles, int current);
-void	free_coders(t_coder **coders, int current);
-void	free_both(t_coder **coders, t_dongle **dongles, int current);
 
 // time functions
 int		safe_gettimeofday(struct timeval *t);
