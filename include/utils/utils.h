@@ -13,7 +13,9 @@
 #ifndef UTILS_H
 # define UTILS_H
 
-# include "codexion.h"
+# include <bits/types/struct_timeval.h>
+# include <pthread.h>
+# include <inttypes.h>
 # include <time.h>
 
 // char analysis functions
@@ -22,15 +24,10 @@ int		ft_isdigit(int c);
 // pointer swapper
 void	ft_pswap(void **a, void **b);
 
-//Function to free memory
-void	free_dongles(t_dongle **dongles, int current);
-void	free_coders(t_coder **coders, int current);
-void	free_both(t_coder **coders, t_dongle **dongles, int current);
-
 // time functions
 int		safe_gettimeofday(struct timeval *t);
 int		set_timeout(struct timespec *ts, int timeout_ms);
-long	t_diff(struct timeval tv1, struct timeval tv2);
+int64_t	t_diff(struct timeval tv1, struct timeval tv2);
 
 //safe thread functions
 int		sf_thread_create(pthread_t *t_id, void *(*routine)(void *), void *arg);

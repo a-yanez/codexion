@@ -17,22 +17,6 @@
 #include <sys/time.h>
 #include <stdio.h>
 
-/*
-void	edf(t_dongle *dongle)
-{
-	t_coder			*codr_a;
-	t_coder			*codr_b;
-
-	codr_a = dongle->queue[0];
-	codr_b = dongle->queue[1];
-	if (codr_b != NULL)
-	{
-		if (t_diff(codr_a->last_compile_start, codr_b->last_compile_start) > 0)
-			ft_pswap((void **)&codr_a, (void **)&codr_b);
-	}
-}
-*/
-
 int	edf(t_dongle *dongle)
 {
 	t_coder	*c1;
@@ -59,26 +43,6 @@ int	edf(t_dongle *dongle)
 	}
 	return (0);
 }
-
-/*
-void	queue(t_dongle *dongle, t_coder *coder)
-{
-	int	i;
-
-	i = 0;
-	while (i < 2)
-	{
-		if (dongle->queue[i] == NULL)
-		{
-			dongle->queue[i] = coder;
-			break ;
-		}
-		i++;
-	}
-	if (dongle->edf)
-		edf(dongle);
-}
- */
 
 int	queue(t_dongle *dongle, t_coder *coder)
 {

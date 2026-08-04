@@ -50,9 +50,9 @@ int	coders_working(t_args *args)
 	return (signal);
 }
 
-long	calculate_delta(t_coder *coder, t_tmval t)
+int64_t	calculate_delta(t_coder *coder, t_tmval t)
 {
-	long	t_delta;
+	int64_t	t_delta;
 	t_tmval	last_comp;
 
 	if (safe_mutex_lock(&coder->seal))

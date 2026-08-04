@@ -46,16 +46,18 @@ void	pass_the_ref(t_args *args)
 	int				i;
 	struct timeval	ref;
 	t_coder			*coders;
+	t_dongle		*dongles;
 
 	coders = args->coders;
+	dongles = args->dongles;
 	i = 0;
 	ref = args->ref_t[0];
 	while (i < args->data[0])
 	{
-		coders[i].ref.tv_sec = ref.tv_sec;
-		coders[i].ref.tv_usec = ref.tv_usec;
-		coders[i].last_compile_start.tv_sec = ref.tv_sec;
-		coders[i].last_compile_start.tv_usec = ref.tv_usec;
+		coders[i].ref = ref;
+		coders[i].own = ref;
+		coders[i].last_compile_start = ref;
+		dongles[i].last_used = ref;
 		i++;
 	}
 }
