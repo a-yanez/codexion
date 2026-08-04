@@ -40,7 +40,7 @@ static int	wait_for_condition(t_coder *c, t_dongle *d, t_c_args *a)
 
 static int	wait_for_cooldown(t_coder *c, t_dongle *d, t_c_args *a)
 {
-	long	delta_t;
+	int64_t	delta_t;
 
 	delta_t = t_diff(c->own, d->last_used);
 	while (delta_t < d->cool_down || d->queue[0]->n_id != c->n_id)

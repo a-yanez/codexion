@@ -15,6 +15,7 @@
 
 # include <bits/types/struct_timeval.h>
 # include <unistd.h>
+# include <inttypes.h>
 # include <pthread.h>
 # include <sys/time.h>
 # include <time.h>
@@ -117,7 +118,7 @@ void		*monitor_routine(void *args);
 //monitor utils
 int			wait(pthread_mutex_t *m, pthread_cond_t *c, int *ready, int num);
 int			coders_working(t_args *args);
-long		calculate_delta(t_coder *coder, t_tmval t);
+int64_t		calculate_delta(t_coder *coder, t_tmval t);
 int			is_coder_done(t_coder *coder);
 
 //coder functions
@@ -132,9 +133,7 @@ int			release(t_dongle *dongle, t_c_args *ar, t_coder *coder);
 int			drop(t_dongle *dongle, t_coder *coder);
 
 //dongle functions
-//void		edf(t_dongle *dongle);
 int			edf(t_dongle *dongle);
-//void		queue(t_dongle *dongle, t_coder *coder);
 int			queue(t_dongle *dongle, t_coder *coder);
 void		pop(t_dongle *dongle);
 

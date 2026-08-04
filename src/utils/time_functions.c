@@ -13,6 +13,7 @@
 #include "utils/utils.h"
 #include <bits/types/struct_timeval.h>
 #include <sys/time.h>
+#include <inttypes.h>
 #include <stdio.h>
 #include <time.h>
 
@@ -67,19 +68,20 @@ int	set_timeout(struct timespec *ts, int timeout_ms)
 	return (signal);
 }
 
-long	t_diff(struct timeval tv1, struct timeval tv2)
+int64_t	t_diff(struct timeval tv1, struct timeval tv2)
 {
-	long	diff_s;
-	long	diff_usec;
-	long	diff_ms;
+	int64_t	diff_ms;
+	int64_t	usec1;
+	int64_t	usec2;
+	int64_t	diff_usec;
 
-	diff_s = tv1.tv_sec - tv2.tv_sec;
-	diff_usec = tv1.tv_usec - tv2.tv_usec;
-	if (diff_usec < 0)
-	{
-		diff_s -= 1;
-		diff_usec += 1000000;
-	}
-	diff_ms = (diff_s * 1000) + (diff_usec / 1000);
+ 	// Calculate total microseconds difference directly
+	usec1 = (int64_t)tv1.tv_sec * 1000000 + tv1.tv_usec;
+	usec2 = (int64_t)tv2.tv_sec * 1000000 + tv2.tv_usec;
+	diff_usec = usec1 - usec2;
+
+    // Convert to milliseconds
+	diff_ms = diff_usec / 1000;
+
 	return (diff_ms);
 }

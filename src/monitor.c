@@ -33,7 +33,7 @@ parameters:
 
 static int	done_n_deltat(t_args *args, t_coder *coder)
 {
-	long	delta_t;
+	int64_t	delta_t;
 	int		done;
 
 	done = is_coder_done(coder);
@@ -59,8 +59,8 @@ static int	done_n_deltat(t_args *args, t_coder *coder)
 
 static int	burnout(t_args *args, t_coder *coders)
 {
-	int				i;
-	long			signal;
+	int	i;
+	int	signal;
 
 	i = 0;
 	while (i < args->data[0])
@@ -97,7 +97,7 @@ static int	inner_loop(t_args *args, int *working)
 static int	print_burnout(t_args *args)
 {
 	t_dongle	*dongles;
-	long		b_time;
+	int64_t		b_time;
 	int			i;
 
 	if (args->burnt_coder)

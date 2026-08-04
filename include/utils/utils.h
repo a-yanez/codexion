@@ -14,6 +14,7 @@
 # define UTILS_H
 
 # include "codexion.h"
+# include <inttypes.h>
 # include <time.h>
 
 // char analysis functions
@@ -30,7 +31,7 @@ void	free_both(t_coder **coders, t_dongle **dongles, int current);
 // time functions
 int		safe_gettimeofday(struct timeval *t);
 int		set_timeout(struct timespec *ts, int timeout_ms);
-long	t_diff(struct timeval tv1, struct timeval tv2);
+int64_t	t_diff(struct timeval tv1, struct timeval tv2);
 
 //safe thread functions
 int		sf_thread_create(pthread_t *t_id, void *(*routine)(void *), void *arg);
