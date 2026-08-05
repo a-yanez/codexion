@@ -102,7 +102,7 @@ If the parameters are valid, the program will print on the *stdout* a log like t
 803 2 is refactoring
 1204 3 burned out
 ```
-The first number represent a timestamp in ms, the second one the number of coder (ranging from 1 to n) followed by an event. A burn out message will only appear if a coder reach that state and it will be missed if all the coders completed their compiling cycles successfully.
+The first number represent a timestamp in ms, the second one the number of coder (ranging from 1 to n) followed by an event. A burn out message will appear only if a coder reach that state and it will be missing if all the coders completed their compiling cycles successfully.
 
 # **Resources**
 - [Hierarchical Ordening of Sequential Processes](https://www.cs.utexas.edu/~EWD/ewd03xx/EWD310.PDF) by Edsger W. Dijkstra.
