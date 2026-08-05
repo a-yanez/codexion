@@ -11,8 +11,6 @@
 /* ************************************************************************** */
 
 #include "codexion.h"
-#include <stdio.h>
-#include <stdint.h>
 
 int	adding_parsed_data(char **argv, t_args *args)
 {
@@ -20,10 +18,7 @@ int	adding_parsed_data(char **argv, t_args *args)
 
 	data = parser(argv);
 	if (!data)
-	{
-		printf("Memory allocation failed for parsed arguments.\n");
 		return (1);
-	}
 	args->data = data;
 	return (0);
 }

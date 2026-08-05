@@ -13,7 +13,45 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <limits.h>
 #include "utils/utils.h"
+
+static int	just_numbers(char *str)
+{
+	int	i;
+
+	i = 0;
+	while (str[i])
+	{
+		if (!ft_isdigit(str[i]))
+			return (0);
+		i++;
+	}
+	return (1);
+}
+
+int	codexion_atoi(char *str)
+{
+	int	i;
+	int	digit;
+	int	result;
+	int	cycles;
+
+	i = 0;
+	result = 0;
+	if (!just_numbers(str))
+		return (-1);
+	cycles = strlen(str);
+	while (i < cycles)
+	{
+		digit = str[i] - '0';
+		if (result > (INT_MAX - digit) / 10)
+			return (-1);
+		result = (result * 10) + digit;
+		i++;
+	}
+	return (result);
+}
 
 static int	sched_cmp(char *sched, int **arg_list)
 {
@@ -35,49 +73,20 @@ static int	sched_cmp(char *sched, int **arg_list)
 	return (0);
 }
 
-static int	just_numbers(char *str)
-{
-	int	i;
-
-	i = 0;
-	while (str[i])
-	{
-		if (!ft_isdigit(str[i]))
-			return (0);
-		i++;
-	}
-	return (1);
-}
-
-static int	just_positives(int *args)
-{
-	int	i;
-
-	i = 0;
-	while (i < 7)
-	{
-		if (args[i] < 0)
-		{
-			fprintf(stderr, "Argument %d is not a valid integer\n", args[i]);
-			return (0);
-		}
-		i++;
-	}
-	return (1);
-}
-
 int	from_argv_to_data(char **argv, int **data)
 {
 	int	i;
+	int	num;
 
 	i = 1;
 	while (i < 8)
 	{
-		if (just_numbers(argv[i]))
-			(*data)[i - 1] = atoi(argv[i]);
+		num = codexion_atoi(argv[i]);
+		if (num >= 0)
+			(*data)[i - 1] = num;
 		else
 		{
-			fprintf(stderr, "Argument %s invalid. Not an interger\n", argv[i]);
+			fprintf(stderr, "Argument %s is not a valid interger.\n", argv[i]);
 			return (0);
 		}
 		i++;
@@ -96,11 +105,6 @@ int	*parser(char **argv)
 		return (NULL);
 	}
 	if (!from_argv_to_data(argv, &data))
-	{
-		free(data);
-		return (NULL);
-	}
-	if (!just_positives(data))
 	{
 		free(data);
 		return (NULL);
