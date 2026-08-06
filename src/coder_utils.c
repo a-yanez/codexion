@@ -87,7 +87,7 @@ int	release(t_dongle *dongle, t_c_args *ar, t_coder *coder)
 		return (safe_mutex_unlock(&dongle->lock, 1));
 	dongle->on_use = 0;
 	coder->holding -= 1;
-	if (safe_cond_signal(&dongle->cond))
+	if (safe_cond_broadcast(&dongle->cond))
 		return (safe_mutex_unlock(&dongle->lock, 1));
 	if (safe_mutex_unlock(&dongle->lock, 0))
 		return (1);
@@ -100,7 +100,7 @@ int	drop(t_dongle *dongle, t_coder *coder)
 		return (1);
 	dongle->on_use = 0;
 	coder->holding -= 1;
-	if (safe_cond_signal(&dongle->cond))
+	if (safe_cond_broadcast(&dongle->cond))
 		return (safe_mutex_unlock(&dongle->lock, 1));
 	if (safe_mutex_unlock(&dongle->lock, 0))
 		return (1);
