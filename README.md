@@ -61,6 +61,8 @@ To prevent message interleaving. All coders must use the same *print* mutex to r
 - *pthread_mutex_lock*, *pthread_mutex_unlock* and *pthread_mutex_t* was used to create mutex type variables to lock and unlock certain parts of the code. Shared resources between all threads were protected by a single mutex, while resources related to each coder and each dongle were protected by mutexes specific to every coder and every dongle 		
 
 	Shared resources included the synchronized beginning signal, burn out termination signal, print capabilities and cycle completion signal. Specific resources included dongle availability indicators, coders' compilation timestamps and completed cycles. 
+
+	Access to shared resources is held to a minimum. For instance, functions that need to consult the value of a shared variable to perform other operations follow this routine: lock the appropiate mutex, copy the value of the shared variable to a local variable and then unlock the mutex. Then,  operations can be performed without blocking other threads. 
 - *pthread_cond_t* was used to create condition variables. These were used within dongle taking loops to wait if a dongle was being used or to indicate changes in the queue due to scheduling. Within release/drop functions, these variables were used to indicate that a dongle was avaible and could be taken.
 - *pthread_cond_wait* and *pthread_cond_timedwait* were used within the previously mentioned conditional loops to make coder threads to sleep until the conditional signal was broadcasted due to dongle release/drop or queue changes.
 - *pthread_cond_broadcast* was used to signal the changes in the mentioned conditional variables to all sleeping threads waiting for those conditions to change.

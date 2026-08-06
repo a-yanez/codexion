@@ -47,7 +47,7 @@ static int	wait_for_cooldown(t_coder *c, t_dongle *d, t_c_args *a)
 	{
 		if (d->queue[0]->n_id != c->n_id)
 		{
-			if (safe_cond_signal(&d->cond))
+			if (safe_cond_broadcast(&d->cond))
 				return (safe_mutex_unlock(&d->lock, 1));
 			if (safe_cond_wait(&d->cond, &d->lock))
 				return (safe_mutex_unlock(&d->lock, 1));

@@ -40,7 +40,6 @@ int		safe_mutex_lock(pthread_mutex_t *mutex);
 int		safe_mutex_unlock(pthread_mutex_t *mutex, int from_error);
 int		safe_cond_wait(pthread_cond_t *cond, pthread_mutex_t *mutex);
 int		s_tmwt(pthread_cond_t *c, pthread_mutex_t *m, const struct timespec *t);
-int		safe_cond_signal(pthread_cond_t *cond);
 int		safe_cond_broadcast(pthread_cond_t *cond);
 
 #endif

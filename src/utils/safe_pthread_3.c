@@ -43,19 +43,6 @@ int	s_tmwt(pthread_cond_t *c, pthread_mutex_t *m, const struct timespec *t)
 	return (0);
 }
 
-int	safe_cond_signal(pthread_cond_t *cond)
-{
-	int	signal;
-
-	signal = pthread_cond_signal(cond);
-	if (signal)
-	{
-		fprintf(stderr, "Conditional signaling failed\n");
-		return (signal);
-	}
-	return (signal);
-}
-
 int	safe_cond_broadcast(pthread_cond_t *cond)
 {
 	int	signal;
